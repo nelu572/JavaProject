@@ -3,50 +3,61 @@ package com.example.mygame.MainScene;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.scenes.scene2d.Stage;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.utils.viewport.FillViewport;
+import com.badlogic.gdx.utils.viewport.Viewport;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.example.mygame.Main;
 
 public class MainScreen implements Screen {
-    private SpriteBatch batch; // 2D 이미지를 화면에 그리는 도구
+    private SpriteBatch batch;
     private Stage stage;
+    private UIManager uiManager;
+    private final Main main;
+
+    public MainScreen(Main main) {
+        this.main = main;
+    }
 
     @Override
     public void show() {
-
+        Viewport viewport = new FillViewport(2560, 1440);
+        stage = new Stage(viewport);
         batch = new SpriteBatch();
-        stage = new Stage(new ScreenViewport());
-        Gdx.input.setInputProcessor(stage); // Stage가 입력 감지
+        Gdx.input.setInputProcessor(stage);
 
-        //배경 이미지
-        Image background = new Image(new Texture("sprite/ui/img/BG.png"));
-        background.setFillParent(true);
-        stage.addActor(background);
+        stage.getCamera().position.set(0, 0, 0);
+        stage.getCamera().update();
 
-        //버튼
-         ImageButton button = new ImageButton(
-            new TextureRegionDrawable(new TextureRegion(new Texture("sprite/ui/main button/btn.png"))),
-            new TextureRegionDrawable(new TextureRegion(new Texture("sprite/ui/img/BG.png")))
-        );
-         button.setScale(100f);
-        stage.addActor(button);
+        uiManager = new UIManager(viewport);
+
+        uiManager.drawBackground(stage);
+        uiManager.drawTitle(stage);
+        uiManager.drawStartButton(stage);
+        uiManager.drawExitButton(stage);
+
+        uiManager.getStartButton().addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                Gdx.app.log("UI", "게임 화면으로 전환");
+                main.ChangeScene("Game"); // 🔹 Main에 요청
+            }
+        });
+        uiManager.getExitButton().addListener(new ClickListener() {
+            @Override
+            public void clicked(InputEvent event, float x, float y) {
+                dispose();
+                Gdx.app.exit();
+            }
+        });
     }
 
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-
-
-        batch.begin();
-
-        batch.end();
 
         stage.act(delta);
         stage.draw();
@@ -55,9 +66,9 @@ public class MainScreen implements Screen {
     @Override
     public void dispose() {
         batch.dispose();
+        stage.dispose();
     }
 
-    // 나머지 Screen 인터페이스 메서드
     @Override public void resize(int width, int height) {}
     @Override public void pause() {}
     @Override public void resume() {}
