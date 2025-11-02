@@ -14,7 +14,7 @@ import com.example.mygame.Main;
 public class MainScreen implements Screen {
     private SpriteBatch batch;
     private Stage stage;
-    private UIManager uiManager;
+    private MainUI mainUI;
     private final Main main;
 
     public MainScreen(Main main) {
@@ -23,6 +23,10 @@ public class MainScreen implements Screen {
 
     @Override
     public void show() {
+        MainResourceManager.init();
+        MainResourceManager.loadMainUIAssets();
+        MainResourceManager.finishLoading();
+
         Viewport viewport = new FillViewport(2560, 1440);
         stage = new Stage(viewport);
         batch = new SpriteBatch();
@@ -31,21 +35,21 @@ public class MainScreen implements Screen {
         stage.getCamera().position.set(0, 0, 0);
         stage.getCamera().update();
 
-        uiManager = new UIManager(viewport);
+        mainUI = new MainUI(viewport);
 
-        uiManager.drawBackground(stage);
-        uiManager.drawTitle(stage);
-        uiManager.drawStartButton(stage);
-        uiManager.drawExitButton(stage);
+        mainUI.drawUI(stage,mainUI.getBackGround());
+        mainUI.drawUI(stage,mainUI.getTitle());
+        mainUI.drawUI(stage,mainUI.getExitButton());
+        mainUI.drawUI(stage,mainUI.getStartButton());
 
-        uiManager.getStartButton().addListener(new ClickListener() {
+        mainUI.getStartButton().addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 Gdx.app.log("UI", "게임 화면으로 전환");
                 main.ChangeScene("Game"); // 🔹 Main에 요청
             }
         });
-        uiManager.getExitButton().addListener(new ClickListener() {
+        mainUI.getExitButton().addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 dispose();

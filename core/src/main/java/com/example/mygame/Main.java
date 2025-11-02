@@ -2,6 +2,7 @@ package com.example.mygame;
 
 import com.badlogic.gdx.Game;
 import com.example.mygame.GameScene.GameScreen;
+import com.example.mygame.MainScene.MainResourceManager;
 import com.example.mygame.MainScene.MainScreen;
 
 public class Main extends Game {
@@ -31,5 +32,8 @@ public class Main extends Game {
 
     public String GetScene() {
         return Scene;
+    }
+    public void dispose(){
+        MainResourceManager.dispose();
     }
 }
