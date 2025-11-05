@@ -13,16 +13,12 @@ public class MainUI extends UIManager {
     private final ImageButton ExitButton;
 
     public MainUI(Viewport viewport) {
-        MainResourceManager.init();
-        MainResourceManager.loadMainUIAssets();
-        MainResourceManager.finishLoading();
-
-        Texture bg = MainResourceManager.get("sprite/ui/img/BG.png", Texture.class);
-        Texture titleTex = MainResourceManager.get("sprite/ui/img/Title.png", Texture.class);
-        Texture startUp = MainResourceManager.get("sprite/ui/main button/Start_bnt.png", Texture.class);
-        Texture startOver = MainResourceManager.get("sprite/ui/main button/Start_bnt_hover.png", Texture.class);
-        Texture exitUp = MainResourceManager.get("sprite/ui/main button/Exit_bnt.png", Texture.class);
-        Texture exitOver = MainResourceManager.get("sprite/ui/main button/Exit_bnt_hover.png", Texture.class);
+        Texture bg = MainResources.get("sprite/main/img/BG.png", Texture.class);
+        Texture titleTex = MainResources.get("sprite/main/img/Title.png", Texture.class);
+        Texture startUp = MainResources.get("sprite/main/button/Start_bnt.png", Texture.class);
+        Texture startOver = MainResources.get("sprite/main/button/Start_bnt_hover.png", Texture.class);
+        Texture exitUp = MainResources.get("sprite/main/button/Exit_bnt.png", Texture.class);
+        Texture exitOver = MainResources.get("sprite/main/button/Exit_bnt_hover.png", Texture.class);
 
         background = new Image(bg);
         background.setFillParent(true); // 스테이지 전체에 맞게 자동 확장

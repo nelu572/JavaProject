@@ -2,7 +2,9 @@ package com.example.mygame;
 
 import com.badlogic.gdx.Game;
 import com.example.mygame.GameScene.GameScreen;
-import com.example.mygame.MainScene.MainResourceManager;
+import com.example.mygame.GameScene.GameSpriteResources;
+import com.example.mygame.GameScene.GameUIResources;
+import com.example.mygame.MainScene.MainResources;
 import com.example.mygame.MainScene.MainScreen;
 
 public class Main extends Game {
@@ -25,15 +27,13 @@ public class Main extends Game {
                 break;
         }
     }
-
-    public void SetScene(String Scene) {
-        this.Scene = Scene;
-    }
-
     public String GetScene() {
         return Scene;
     }
     public void dispose(){
-        MainResourceManager.dispose();
+        System.out.println("dispose");
+        MainResources.dispose();
+        GameUIResources.dispose();
+        GameSpriteResources.dispose();
     }
 }

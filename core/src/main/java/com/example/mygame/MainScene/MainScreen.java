@@ -23,9 +23,9 @@ public class MainScreen implements Screen {
 
     @Override
     public void show() {
-        MainResourceManager.init();
-        MainResourceManager.loadMainUIAssets();
-        MainResourceManager.finishLoading();
+        MainResources.init();
+        MainResources.loadAssets();
+        MainResources.finishLoading();
 
         Viewport viewport = new FillViewport(2560, 1440);
         stage = new Stage(viewport);
@@ -45,7 +45,7 @@ public class MainScreen implements Screen {
         mainUI.getStartButton().addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
-                Gdx.app.log("UI", "게임 화면으로 전환");
+                MainResources.unloadAssets();
                 main.ChangeScene("Game"); // 🔹 Main에 요청
             }
         });
