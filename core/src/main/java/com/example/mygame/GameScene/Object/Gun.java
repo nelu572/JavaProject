@@ -6,14 +6,18 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.math.MathUtils;
+
+import com.example.mygame.EveryScene.CoverViewport;
 import com.example.mygame.EveryScene.GameObject;
 import com.example.mygame.GameScene.GameSpriteResources;
 
 public class Gun extends GameObject {
     private final Player player;
-    private final Camera camera;
+    private final CoverViewport viewport;
+    private float angle;
 
     // 플레이어 기준 오프셋 (플레이어 손 위치)
     private float offsetX = 0;
@@ -21,14 +25,18 @@ public class Gun extends GameObject {
 
     // 회전축 위치 (0~1, 0이 왼쪽, 1이 오른쪽)
     private float pivotX = 0.2f; // 테스트: 총의 왼쪽 끝
-    private float pivotY = 0.7f; // 총 높이의 50% 지점 (중앙)
+    private float pivotY = 0.725f; // 총 높이의 50% 지점 (중앙)
+
+    // 총구 위치
+    private float muzzleX = 1f;
+    private float muzzleY = 0.7f;
 
     private ShapeRenderer shapeRenderer;
 
-    public Gun(Player player, Camera camera) {
+    public Gun(Player player, CoverViewport viewport) {
         super(GameSpriteResources.get("sprite/game/gun/M92.png", Texture.class));
         this.player = player;
-        this.camera = camera;
+        this.viewport = viewport;
         super.setSize(19 * 4.5f, 12 * 4.5f);
         shapeRenderer = new ShapeRenderer();
 
@@ -49,46 +57,42 @@ public class Gun extends GameObject {
         );
     }
 
-    @Override
-    public void update(float delta) {
+    public void update(float delta, CoverViewport viewport) {
         super.update(delta);
-
-        // 위치 업데이트
         updatePosition();
 
-        // 마우스 좌표 → 월드 좌표 변환
-        Vector3 mousePos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
-        camera.unproject(mousePos);
-
-        // 총의 실제 회전축 위치 (렌더링되는 pivot의 월드 좌표)
+        Vector3 mousePos = viewport.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
         float gunPivotWorldX = getX() + getWidth() * pivotX;
         float gunPivotWorldY = getY() + getHeight() * pivotY;
 
-        // 총의 회전축에서 마우스로 향하는 각도 계산
-        float angle = (float) Math.toDegrees(
-            Math.atan2(mousePos.y - gunPivotWorldY, mousePos.x - gunPivotWorldX)
-        );
-        setRotation(angle);
+        // 총 앞쪽이면 회전
+        if (mousePos.x >= gunPivotWorldX) {
+            float targetAngle = (float) Math.toDegrees(
+                Math.atan2(mousePos.y - gunPivotWorldY, mousePos.x - gunPivotWorldX)
+            );
+
+            // 이전 각도와 자연스럽게 보간
+            float smoothAngle = MathUtils.lerpAngleDeg(angle, targetAngle, 0.2f); // 속도 조절
+
+            // 최종 각도 제한
+            float minAngle = -60f;
+            float maxAngle = 60f;
+            angle = MathUtils.clamp(smoothAngle, minAngle, maxAngle);
+
+            setRotation(angle);
+        }
     }
-    public boolean isFilp() {
-        return getRotation()>90 || getRotation()<-90 ;
-    }
+
     @Override
     public void render(SpriteBatch batch) {
-        boolean flipped = isFilp();
-
         float drawX = getX();
         float drawY = getY();
         float originX = getWidth() * pivotX;
         float originY = getHeight() * pivotY;
 
-        // 🔹 Y플립 시 위치 보정
-        if (flipped) {
-            drawY += getHeight() * (2 * pivotY - 1f);
-            originY = getHeight() * (1f - pivotY);
-        }
+        // flip 처리 제거
 
-        // 🔹 총 스프라이트 렌더
+        // 총 스프라이트 렌더
         batch.draw(
             getTexture(),
             drawX, drawY,
@@ -98,45 +102,53 @@ public class Gun extends GameObject {
             getRotation(),
             0, 0,
             getTexture().getWidth(), getTexture().getHeight(),
-            false, flipped
+            false, false
         );
 
-        // 🔹 총구에서 화면 끝까지 이어지는 빨간선
+        // 레이저 렌더
         batch.end();
-        shapeRenderer.setProjectionMatrix(camera.combined);
+        shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.RED);
 
-        // 회전축(총구) 위치 계산
-        float gunPivotWorldX = getX() + getWidth() * pivotX;
-        float gunPivotWorldY = getY() + getHeight() * pivotY;
-
-        // 마우스 좌표를 월드 좌표로 변환
-        Vector3 mousePos = new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0);
-        camera.unproject(mousePos);
-
-        // 방향 벡터 계산
-        float dx = mousePos.x - gunPivotWorldX;
-        float dy = mousePos.y - gunPivotWorldY;
-        float len = (float) Math.sqrt(dx * dx + dy * dy);
-        dx /= len;
-        dy /= len;
-
-        // 선 길이를 충분히 크게 설정 (예: 화면 너비 또는 더 긴 거리)
+        Vector2 muzzlePos = getMuzzleWorldPosition();
+        float dx = (float) Math.cos(Math.toRadians(angle));
+        float dy = (float) Math.sin(Math.toRadians(angle));
         float laserLength = 5000f;
 
-        // 끝점 계산
-        float endX = gunPivotWorldX + dx * laserLength;
-        float endY = gunPivotWorldY + dy * laserLength;
-
-        // 선 그리기
-        shapeRenderer.line(
-            gunPivotWorldX, gunPivotWorldY,
-            endX, endY
-        );
+        shapeRenderer.line(muzzlePos.x, muzzlePos.y,
+            muzzlePos.x + dx * laserLength,
+            muzzlePos.y + dy * laserLength);
 
         shapeRenderer.end();
         batch.begin();
+    }
+
+    /**
+     * 총구(Muzzle)의 월드 좌표 계산
+     * @return Vector2 : x, y가 월드 좌표
+     */
+    public Vector2 getMuzzleWorldPosition() {
+        float gunX = getX();
+        float gunY = getY();
+        float gunWidth = getWidth();
+        float gunHeight = getHeight();
+
+        // pivot 기준 위치
+        float pivotWorldX = gunX + gunWidth * pivotX;
+        float pivotWorldY = gunY + gunHeight * pivotY;
+
+        // 총구 기준 월드 좌표 (pivot 기준)
+        float muzzleOffsetX = gunWidth * muzzleX - gunWidth * pivotX;
+        float muzzleOffsetY = gunHeight * muzzleY - gunHeight * pivotY;
+
+        // 회전 적용
+        float cos = (float) Math.cos(Math.toRadians(getRotation()));
+        float sin = (float) Math.sin(Math.toRadians(getRotation()));
+        float rotatedMuzzleX = pivotWorldX + muzzleOffsetX * cos - muzzleOffsetY * sin;
+        float rotatedMuzzleY = pivotWorldY + muzzleOffsetX * sin + muzzleOffsetY * cos;
+
+        return new Vector2(rotatedMuzzleX, rotatedMuzzleY);
     }
 
 

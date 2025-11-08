@@ -3,13 +3,14 @@ package com.example.mygame.GameScene;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.example.mygame.EveryScene.CoverViewport;
 import com.example.mygame.EveryScene.UIManager;
 
 public class GameUI extends UIManager {
     private final Image ground;
     private final Image background;
 
-    public GameUI(Viewport viewport) {
+    public GameUI(CoverViewport viewport) {
         Texture Ground = GameUIResources.get("sprite/game/ui/img/ground.png", Texture.class);
 
         ground = new Image(Ground);

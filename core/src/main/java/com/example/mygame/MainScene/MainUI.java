@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
 import com.badlogic.gdx.utils.viewport.Viewport;
+import com.example.mygame.EveryScene.CoverViewport;
 import com.example.mygame.EveryScene.UIManager;
 
 public class MainUI extends UIManager {
@@ -12,7 +13,7 @@ public class MainUI extends UIManager {
     private final ImageButton StartButton;
     private final ImageButton ExitButton;
 
-    public MainUI(Viewport viewport) {
+    public MainUI(CoverViewport viewport) {
         Texture bg = MainResources.get("sprite/main/img/BG.png", Texture.class);
         Texture titleTex = MainResources.get("sprite/main/img/Title.png", Texture.class);
         Texture startUp = MainResources.get("sprite/main/button/Start_bnt.png", Texture.class);
@@ -20,21 +21,44 @@ public class MainUI extends UIManager {
         Texture exitUp = MainResources.get("sprite/main/button/Exit_bnt.png", Texture.class);
         Texture exitOver = MainResources.get("sprite/main/button/Exit_bnt_hover.png", Texture.class);
 
+        // 🔹 배경 이미지를 뷰포트 크기에 맞게 비율 유지하면서 꽉 채우기
         background = new Image(bg);
-        background.setFillParent(true); // 스테이지 전체에 맞게 자동 확장
-        background.setSize(viewport.getWorldWidth(), viewport.getWorldHeight());
-        background.setPosition(-1280, -720);
+
+        float viewportWidth = viewport.getWorldWidth();
+        float viewportHeight = viewport.getWorldHeight();
+        float bgWidth = bg.getWidth();
+        float bgHeight = bg.getHeight();
+
+        // 배경의 비율
+        float bgRatio = bgWidth / bgHeight;
+        // 뷰포트의 비율
+        float viewportRatio = viewportWidth / viewportHeight;
+
+        float scaleX, scaleY;
+
+        if (viewportRatio > bgRatio) {
+            // 뷰포트가 더 넓음 → 가로에 맞춤
+            scaleX = viewportWidth / bgWidth;
+            scaleY = scaleX;
+        } else {
+            // 뷰포트가 더 좁음 → 세로에 맞춤
+            scaleY = viewportHeight / bgHeight;
+            scaleX = scaleY;
+        }
+
+        background.setScale(scaleX, scaleY);
+        background.setPosition(-viewportWidth/2, -viewportHeight/2);
 
         title = new Image(titleTex);
-        title.setPosition(-853 / 2f, 30);
+        title.setPosition(-894 * 1.05f / 2f, 30);
 
         StartButton = createButton(startUp, startOver);
         StartButton.setSize(450f, 130f);
-        StartButton.setPosition(-450/2f, -300);
+        StartButton.setPosition(-450/2f*1.05f, -300);
 
         ExitButton = createButton(exitUp, exitOver);
         ExitButton.setSize(450f, 130f);
-        ExitButton.setPosition(-450/2f, -500);
+        ExitButton.setPosition(-450/2f*1.05f, -500);
     }
 
     public ImageButton getStartButton() {

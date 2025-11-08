@@ -1,6 +1,10 @@
 package com.example.mygame;
 
 import com.badlogic.gdx.Game;
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.example.mygame.EveryScene.CursorManager;
 import com.example.mygame.GameScene.GameScreen;
 import com.example.mygame.GameScene.GameSpriteResources;
 import com.example.mygame.GameScene.GameUIResources;
@@ -13,6 +17,8 @@ public class Main extends Game {
     @Override
     public void create() {
         setScreen(new MainScreen(this)); // 🔹 this 전달
+        Gdx.input.setCursorCatched(false);
+
         Scene = "Main";
     }
 
@@ -32,6 +38,7 @@ public class Main extends Game {
     }
     public void dispose(){
         System.out.println("dispose");
+        CursorManager.getCursor().getTexture().dispose();
         MainResources.dispose();
         GameUIResources.dispose();
         GameSpriteResources.dispose();
