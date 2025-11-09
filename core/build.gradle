@@ -1,20 +1,24 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm'
+  id "org.jetbrains.kotlin.jvm" version "1.9.10"
+  id 'java-library'
 }
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-eclipse.project.name = appName + '-core'
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(21) // Java 21
+  }
+}
+
+repositories {
+  mavenCentral()
+}
 
 dependencies {
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
+  api "com.badlogicgames.gdx:gdx-box2d:$gdxVersion"
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+}
 
-  if(enableGraalNative == 'true') {
-    implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
-  }
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-}
-repositories {
-    mavenCentral()
-}
 kotlin {
-    jvmToolchain(21)
+  jvmToolchain(17) // Kotlin JVM target은 17
 }

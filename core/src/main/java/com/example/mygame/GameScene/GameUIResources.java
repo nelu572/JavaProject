@@ -11,12 +11,10 @@ public class GameUIResources {
     }
 
     public static void loadAssets() {
-        GameAssetManager.load("sprite/game/ui/img/ground.png", Texture.class);
         GameAssetManager.load("sprite/game/ui/img/BG.png", Texture.class);
     }
 
     public static void unloadAssets() { // 추가
-        unloadAsset("sprite/game/ui/img/ground.png");
         unloadAsset("sprite/game/ui/img/BG.png");
     }
     private static void unloadAsset(String name) {
