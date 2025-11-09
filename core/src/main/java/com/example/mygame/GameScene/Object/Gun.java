@@ -57,6 +57,11 @@ public class Gun extends GameObject {
         );
     }
 
+
+    private float normalizeAngle(float angle) {
+        return ((angle + 180f) % 360f + 360f) % 360f - 180f;
+    }
+
     public void update(float delta, CoverViewport viewport) {
         super.update(delta);
         updatePosition();
@@ -65,23 +70,34 @@ public class Gun extends GameObject {
         float gunPivotWorldX = getX() + getWidth() * pivotX;
         float gunPivotWorldY = getY() + getHeight() * pivotY;
 
-        // 총 앞쪽이면 회전
         if (mousePos.x >= gunPivotWorldX) {
-            float targetAngle = (float) Math.toDegrees(
+            float targetAngle = (float)Math.toDegrees(
                 Math.atan2(mousePos.y - gunPivotWorldY, mousePos.x - gunPivotWorldX)
             );
 
-            // 이전 각도와 자연스럽게 보간
-            float smoothAngle = MathUtils.lerpAngleDeg(angle, targetAngle, 0.2f); // 속도 조절
+            // 현재 각도와 목표 각도를 -180~180로 정규화
+            float current = normalizeAngle(angle);
+            float target = normalizeAngle(targetAngle);
 
-            // 최종 각도 제한
-            float minAngle = -60f;
-            float maxAngle = 60f;
-            angle = MathUtils.clamp(smoothAngle, minAngle, maxAngle);
+            // 보간
+            float smooth = MathUtils.lerpAngleDeg(current, target, 0.3f);
 
-            setRotation(angle);
+            // 보간 후 다시 정규화
+            angle = normalizeAngle(smooth);
+
+            // 앞쪽 회전 제한
+            angle = MathUtils.clamp(angle, -80f, 80f);
+        } else {
+            // 뒤쪽 마우스는 0도로 부드럽게 보정
+            angle = MathUtils.lerpAngleDeg(angle, 0f, 0.1f);
+            angle = normalizeAngle(angle); // 안전하게 정규화
         }
+
+        setRotation(angle);
     }
+
+
+
 
     @Override
     public void render(SpriteBatch batch) {
@@ -150,7 +166,4 @@ public class Gun extends GameObject {
 
         return new Vector2(rotatedMuzzleX, rotatedMuzzleY);
     }
-
-
-
 }
