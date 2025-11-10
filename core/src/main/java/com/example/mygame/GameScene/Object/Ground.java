@@ -48,6 +48,8 @@ public class Ground extends GameObject {
 
         body.createFixture(fixtureDef);
         shape.dispose();
+
+        body.setUserData(this);
     }
 
     public Body getBody() {

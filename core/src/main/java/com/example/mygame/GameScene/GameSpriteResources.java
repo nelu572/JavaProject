@@ -12,6 +12,7 @@ public class GameSpriteResources {
 
     public static void loadAssets() {
         GameAssetManager.load("sprite/game/img/ground.png", Texture.class);
+        GameAssetManager.load("sprite/game/bullet/1.png", Texture.class);
         GameAssetManager.load("sprite/game/tower/LV1.png", Texture.class);
         GameAssetManager.load("sprite/game/tower/LV2.png", Texture.class);
         GameAssetManager.load("sprite/game/player/idle1.png", Texture.class);
@@ -20,6 +21,7 @@ public class GameSpriteResources {
     }
 
     public static void unloadAssets() {
+        unloadAsset("sprite/game/bullet/1.png");
         unloadAsset("sprite/game/img/ground.png");
         unloadAsset("sprite/game/tower/LV1.png");
         unloadAsset("sprite/game/tower/LV2.png");

@@ -13,7 +13,7 @@ public class GameUI extends UIManager {
 
         Texture Background = GameUIResources.get("sprite/game/ui/img/BG.png", Texture.class);
         background = new Image(Background);
-        background.setColor(1f, 1f, 1f, 0.75f);
+        background.setColor(1.2f, 1.2f, 1.2f, 1f);
         background.setScale(1.7f);
         background.setPosition(-viewport.getWorldWidth()/2f, -viewport.getWorldHeight()/2f);
     }
