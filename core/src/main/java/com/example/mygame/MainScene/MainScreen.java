@@ -33,11 +33,11 @@ public class MainScreen implements Screen {
         MainResources.finishLoading();
 
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, 2160, 1440); // 기준 월드 크기 설정
+        camera.setToOrtho(false, 2560, 1440); // 기준 월드 크기 설정
         camera.update();
 
         // FitViewport → CoverViewport로 변경
-        viewport = new CoverViewport(2160, 1440, camera);
+        viewport = new CoverViewport(2560, 1440, camera);
         viewport.initialize(Gdx.graphics.getWidth(), Gdx.graphics.getHeight(), true);
         stage = new Stage(viewport);
         batch = new SpriteBatch();

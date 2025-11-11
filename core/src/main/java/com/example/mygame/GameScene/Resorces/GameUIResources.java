@@ -1,4 +1,4 @@
-package com.example.mygame.GameScene;
+package com.example.mygame.GameScene.Resorces;
 
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Texture;

@@ -10,9 +10,13 @@ import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.example.mygame.EveryScene.CoverViewport;
 import com.example.mygame.EveryScene.CursorManager;
+import com.example.mygame.GameScene.Manager.BulletManager;
+import com.example.mygame.GameScene.Manager.MyContactListener;
 import com.example.mygame.GameScene.Object.Ground;
 import com.example.mygame.GameScene.Object.Player;
 import com.example.mygame.GameScene.Object.Tower;
+import com.example.mygame.GameScene.Resorces.GameSpriteResources;
+import com.example.mygame.GameScene.Resorces.GameUIResources;
 import com.example.mygame.Main;
 
 public class GameScreen implements Screen {
@@ -61,6 +65,8 @@ public class GameScreen implements Screen {
 
         // Box2D World 생성 (중력 -9.8)
         world = new World(new Vector2(0, -9.8f), true);
+        world.setContactListener(new MyContactListener());
+
         debugRenderer = new Box2DDebugRenderer();
 
         gameUI = new GameUI(viewport);
@@ -85,6 +91,7 @@ public class GameScreen implements Screen {
 
         // Box2D 물리 시뮬레이션 (고정 타임스텝)
         world.step(1/60f, 6, 2);
+        BulletManager.processDestroyQueue();
 
         player.update(delta);
 

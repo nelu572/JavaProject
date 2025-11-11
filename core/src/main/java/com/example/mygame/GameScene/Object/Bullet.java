@@ -5,19 +5,19 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.example.mygame.EveryScene.GameObject;
-import com.example.mygame.GameScene.GameSpriteResources;
+import com.example.mygame.GameScene.Manager.BulletManager;
+import com.example.mygame.GameScene.Resorces.GameSpriteResources;
 
 public class Bullet extends GameObject {
     private Body body;
     private World world;
     private boolean alive;
-    private boolean shouldDestroy; // 삭제 예약 플래그
     private float lifeTime;
     private float maxLifeTime = 3f;
     private float angle;
 
     private static final float PPM = 100f;
-    private static final float BULLET_SPEED = 3000f;
+    private static final float BULLET_SPEED = 4000f;
     private static final float BULLET_RADIUS = 16f;
     private static final float BULLET_SIZE = 128f;
 
@@ -51,9 +51,11 @@ public class Bullet extends GameObject {
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = circle;
+        fixtureDef.isSensor = true; // 여기서 트리거처럼 설정
         fixtureDef.density = 1f;
         fixtureDef.friction = 0f;
-        fixtureDef.restitution = 0.3f;
+        fixtureDef.restitution = 0f; // 반발력 제거
+
 
         body.createFixture(fixtureDef);
         circle.dispose();
@@ -98,8 +100,10 @@ public class Bullet extends GameObject {
             false, false);
     }
 
+    @Override
     public void onHit() {
-        destroy();
+        // 바로 삭제하지 않고 요청만 등록
+        BulletManager.requestDestroy(this);
     }
 
     public void destroy() {
@@ -107,7 +111,7 @@ public class Bullet extends GameObject {
 
         alive = false;
         if (body != null) {
-            world.destroyBody(body);
+            world.destroyBody(body); // 여기서는 Step이 끝난 후 안전하게 호출
             body = null;
         }
     }

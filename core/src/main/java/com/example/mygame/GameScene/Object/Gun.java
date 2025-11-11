@@ -14,7 +14,7 @@ import com.badlogic.gdx.physics.box2d.RayCastCallback;
 import com.badlogic.gdx.physics.box2d.World;
 import com.example.mygame.EveryScene.CoverViewport;
 import com.example.mygame.EveryScene.GameObject;
-import com.example.mygame.GameScene.GameSpriteResources;
+import com.example.mygame.GameScene.Resorces.GameSpriteResources;
 
 import java.util.ArrayList;
 

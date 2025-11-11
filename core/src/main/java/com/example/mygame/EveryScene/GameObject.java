@@ -59,7 +59,7 @@ public class GameObject {
     public void setVelocity(float x, float y) {
         this.velocity.set(x, y);
     }
-
+    public void onHit() {}
     public void setSize(float width, float height) {
         this.width = width;
         this.height = height;

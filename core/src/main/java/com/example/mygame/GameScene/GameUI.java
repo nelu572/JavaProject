@@ -2,9 +2,9 @@ package com.example.mygame.GameScene;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.utils.viewport.Viewport;
 import com.example.mygame.EveryScene.CoverViewport;
 import com.example.mygame.EveryScene.UIManager;
+import com.example.mygame.GameScene.Resorces.GameUIResources;
 
 public class GameUI extends UIManager {
     private final Image background;

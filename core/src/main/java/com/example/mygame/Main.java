@@ -2,12 +2,10 @@ package com.example.mygame;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.example.mygame.EveryScene.CursorManager;
 import com.example.mygame.GameScene.GameScreen;
-import com.example.mygame.GameScene.GameSpriteResources;
-import com.example.mygame.GameScene.GameUIResources;
+import com.example.mygame.GameScene.Resorces.GameSpriteResources;
+import com.example.mygame.GameScene.Resorces.GameUIResources;
 import com.example.mygame.MainScene.MainResources;
 import com.example.mygame.MainScene.MainScreen;
 

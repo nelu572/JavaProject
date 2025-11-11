@@ -1,10 +1,9 @@
 package com.example.mygame.GameScene.Object;
 
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.example.mygame.EveryScene.GameObject;
-import com.example.mygame.GameScene.GameSpriteResources;
+import com.example.mygame.GameScene.Resorces.GameSpriteResources;
 
 import java.util.ArrayList;
 

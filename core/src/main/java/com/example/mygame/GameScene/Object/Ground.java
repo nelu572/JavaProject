@@ -3,7 +3,7 @@ package com.example.mygame.GameScene.Object;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.physics.box2d.*;
 import com.example.mygame.EveryScene.GameObject;
-import com.example.mygame.GameScene.GameSpriteResources;
+import com.example.mygame.GameScene.Resorces.GameSpriteResources;
 
 public class Ground extends GameObject {
     private Body body;
