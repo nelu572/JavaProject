@@ -13,11 +13,15 @@ import com.example.mygame.EveryScene.CursorManager;
 import com.example.mygame.GameScene.Manager.BulletManager;
 import com.example.mygame.GameScene.Manager.MyContactListener;
 import com.example.mygame.GameScene.Object.Ground;
+import com.example.mygame.GameScene.Object.Monster.Slime;
 import com.example.mygame.GameScene.Object.Player;
 import com.example.mygame.GameScene.Object.Tower;
+import com.example.mygame.GameScene.Resorces.GameMonsterResources;
 import com.example.mygame.GameScene.Resorces.GameSpriteResources;
 import com.example.mygame.GameScene.Resorces.GameUIResources;
 import com.example.mygame.Main;
+
+import java.util.ArrayList;
 
 public class GameScreen implements Screen {
     private OrthographicCamera camera;
@@ -35,6 +39,7 @@ public class GameScreen implements Screen {
     private Ground ground;
     private Tower tower;
     private Player player;
+    private ArrayList<Slime> slimes =  new ArrayList<>();
 
     public GameScreen(Main main) {
         this.main = main;
@@ -42,13 +47,14 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
-        GameSpriteResources.init();
         GameSpriteResources.loadAssets();
         GameSpriteResources.finishLoading();
 
-        GameUIResources.init();
         GameUIResources.loadAssets();
         GameUIResources.finishLoading();
+
+        GameMonsterResources.loadAssets();
+        GameMonsterResources.finishLoading();
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, 2560, 1440);
@@ -76,6 +82,7 @@ public class GameScreen implements Screen {
         ground = new Ground(world);
         tower = new Tower(world,1);
         player = new Player(world, viewport);
+        slimes.add(new Slime(world));
     }
 
     @Override
@@ -89,26 +96,38 @@ public class GameScreen implements Screen {
             main.ChangeScene("Main");
         }
 
-        // Box2D 물리 시뮬레이션 (고정 타임스텝)
         world.step(1/60f, 6, 2);
-        BulletManager.processDestroyQueue();
 
+        update(delta);
+
+        rendering();
+    }
+    private void update(float delta){
+        BulletManager.processDestroyQueue();
         player.update(delta);
+        for(Slime slime: slimes){
+            slime.update(delta);
+        }
 
         backstage.act(delta);
         backstage.draw();
-
+    }
+    private void rendering(){
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
         ground.render(batch);
         tower.render(batch);
         player.render(batch);
+        for(Slime slime: slimes){
+            slime.render(batch);
+        }
         CursorManager.draw(batch, viewport);
         batch.end();
 
         // 디버그 렌더링 (충돌 박스 보기 - 개발 중에만 사용)
         debugRenderer.render(world, viewport.getCamera().combined.cpy().scl(PPM));
     }
+
 
     @Override
     public void resize(int width, int height) {

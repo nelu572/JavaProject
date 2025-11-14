@@ -1,6 +1,7 @@
 package com.example.mygame.GameScene.Object;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -24,20 +25,17 @@ public class Gun extends GameObject {
     private float angle;
     private boolean aiming;
 
-    // 플레이어 기준 오프셋 (플레이어 손 위치)
     private float offsetX = 0;
     private float offsetY = -5;
 
-    // 회전축 위치 (0~1, 0이 왼쪽, 1이 오른쪽)
-    private float pivotX = 0.3f; // 테스트: 총의 왼쪽 끝
-    private float pivotY = 0.735f; // 총 높이의 50% 지점 (중앙)
+    private float pivotX = 0.3f;
+    private float pivotY = 0.735f;
 
-    // 총구 위치
     private float muzzleX = 1f;
     private float muzzleY = 0.735f;
-    // Gun 클래스에 추가
+
     private float recoilOffset = 0f;
-    private float recoilRecovery = 15f; // 복구 속도
+    private float recoilRecovery = 15f;
 
     private ShapeRenderer shapeRenderer;
 
@@ -45,6 +43,10 @@ public class Gun extends GameObject {
     private static final float PPM = 100f;
 
     private ArrayList<Bullet> bullets = new ArrayList<>();
+
+    // 발사 쿨타임
+    private float shootCooldown = 0f;
+    private float shootDelay = 0.1f; // 0.1초마다 발사 가능
 
     public Gun(Player player, CoverViewport viewport, World world) {
         super(GameSpriteResources.get("sprite/game/gun/M92.png", Texture.class));
@@ -56,23 +58,14 @@ public class Gun extends GameObject {
         updatePosition();
     }
 
-    public void shoot() {
-        if(!aiming) return;
-
-        Vector2 muzzlePos = getMuzzleWorldPosition();
-        Bullet bullet = new Bullet(world, muzzlePos, angle);
-        bullets.add(bullet);// Gun 클래스에 추가
-        // 반동 추가
-        recoilOffset = 10f; // 10픽셀 뒤로
-    }
-
-
     @Override
     public void render(SpriteBatch batch) {
+
         // 총 스프라이트 렌더
         batch.draw(getTexture(), getX(), getY(), getWidth() * pivotX, getHeight() * pivotY,
             getWidth(), getHeight(), 1f, 1f, getRotation(),
             0, 0, getTexture().getWidth(), getTexture().getHeight(), false, false);
+
         if(aiming) {
             // Raycast로 레이저 충돌 체크
             Vector2 muzzlePos = getMuzzleWorldPosition();
@@ -95,31 +88,30 @@ public class Gun extends GameObject {
                 }
             }, rayStart, rayEnd);
 
-            // 레이저 렌더링 (굵은 선)
+            // 레이저 렌더링
             batch.end();
 
             shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
-            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);  // Filled로 변경
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             shapeRenderer.setColor(Color.RED);
 
-            float lineWidth = 2f;  // 선 굵기 (픽셀 단위)
+            float lineWidth = 2f;
             shapeRenderer.rectLine(muzzlePos.x, muzzlePos.y, hitPoint.x, hitPoint.y, lineWidth);
 
             shapeRenderer.end();
             batch.begin();
         }
+
+        // 총알 궤적 효과와 함께 렌더
         for(Bullet b : bullets) {
-            b.render(batch);
+            b.render(batch, shapeRenderer, viewport);
         }
     }
 
-
-    // updatePosition 수정
     private void updatePosition() {
         float playerCenterX = player.getX() + player.getWidth() / 2f;
         float playerCenterY = player.getY() + player.getHeight() / 2f;
 
-        // 반동 적용 (총이 바라보는 반대 방향으로)
         float recoilX = -(float)Math.cos(Math.toRadians(angle)) * recoilOffset;
         float recoilY = -(float)Math.sin(Math.toRadians(angle)) * recoilOffset;
 
@@ -132,7 +124,6 @@ public class Gun extends GameObject {
         );
     }
 
-
     private float normalizeAngle(float angle) {
         return ((angle + 180f) % 360f + 360f) % 360f - 180f;
     }
@@ -140,6 +131,11 @@ public class Gun extends GameObject {
     public void update(float delta, CoverViewport viewport) {
         super.update(delta);
         updatePosition();
+
+        // 발사 쿨타임 감소
+        if (shootCooldown > 0) {
+            shootCooldown -= delta;
+        }
 
         Vector3 mousePos = viewport.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
         float gunPivotWorldX = getX() + getWidth() * pivotX;
@@ -149,25 +145,19 @@ public class Gun extends GameObject {
             Math.atan2(mousePos.y - gunPivotWorldY, mousePos.x - gunPivotWorldX)
         );
 
-// 현재 각도와 목표 각도를 -180~180로 정규화
         float current = normalizeAngle(angle);
         float target = normalizeAngle(targetAngle);
 
-// 목표 각도가 ±80도 범위 안이면 보간
         if(target >= -90f && target <= 80f){
             aiming = true;
             angle = MathUtils.lerpAngleDeg(current, target, 0.5f);
-        } else {// 범위를 벗어나면 0도로 부드럽게 보정
+        } else {
             aiming = false;
             angle = MathUtils.lerpAngleDeg(current, 0f, 0.1f);
         }
 
-// 보간 후 각도 정규화
         angle = normalizeAngle(angle);
-
-// 최종 각도 클램프
         angle = MathUtils.clamp(angle, -90f, 80f);
-
 
         setRotation(angle);
 
@@ -180,34 +170,43 @@ public class Gun extends GameObject {
             }
         }
 
-        // 발사 (예: 마우스 클릭시)
-        if(Gdx.input.justTouched() && aiming) {
-            shoot();
-        }
         if(recoilOffset > 0) {
             recoilOffset = Math.max(0, recoilOffset - recoilRecovery * delta);
+            aiming = false;
+        }
+
+        // 연사 가능하도록 수정
+        if(Gdx.input.isButtonPressed(Input.Buttons.LEFT) && aiming && shootCooldown <= 0) {
+            shoot();
         }
     }
 
-    /**
-     * 총구(Muzzle)의 월드 좌표 계산
-     * @return Vector2 : x, y가 월드 좌표
-     */
+    public void shoot() {
+        aiming = false;
+
+        Vector2 muzzlePos = getMuzzleWorldPosition();
+        Bullet bullet = new Bullet(world, muzzlePos, angle);
+        bullets.add(bullet);
+
+        // 반동 추가
+        recoilOffset = 10f;
+
+        // 발사 쿨타임 설정
+        shootCooldown = shootDelay;
+    }
+
     public Vector2 getMuzzleWorldPosition() {
         float gunX = getX();
         float gunY = getY();
         float gunWidth = getWidth();
         float gunHeight = getHeight();
 
-        // pivot 기준 위치
         float pivotWorldX = gunX + gunWidth * pivotX;
         float pivotWorldY = gunY + gunHeight * pivotY;
 
-        // 총구 기준 월드 좌표 (pivot 기준)
         float muzzleOffsetX = gunWidth * muzzleX - gunWidth * pivotX;
         float muzzleOffsetY = gunHeight * muzzleY - gunHeight * pivotY;
 
-        // 회전 적용
         float cos = (float) Math.cos(Math.toRadians(getRotation()));
         float sin = (float) Math.sin(Math.toRadians(getRotation()));
         float rotatedMuzzleX = pivotWorldX + muzzleOffsetX * cos - muzzleOffsetY * sin;

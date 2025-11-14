@@ -4,6 +4,7 @@ import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.example.mygame.EveryScene.CursorManager;
 import com.example.mygame.GameScene.GameScreen;
+import com.example.mygame.GameScene.Resorces.GameMonsterResources;
 import com.example.mygame.GameScene.Resorces.GameSpriteResources;
 import com.example.mygame.GameScene.Resorces.GameUIResources;
 import com.example.mygame.MainScene.MainResources;
@@ -14,8 +15,13 @@ public class Main extends Game {
 
     @Override
     public void create() {
-        setScreen(new MainScreen(this)); // 🔹 this 전달
-        Gdx.input.setCursorCatched(false);
+        MainResources.init();
+        GameMonsterResources.init();
+        GameUIResources.init();
+        GameSpriteResources.init();
+
+        setScreen(new MainScreen(this)); // this 전달
+        Gdx.input.setCursorCatched(true);
 
         Scene = "Main";
     }
@@ -40,5 +46,6 @@ public class Main extends Game {
         MainResources.dispose();
         GameUIResources.dispose();
         GameSpriteResources.dispose();
+        GameMonsterResources.dispose();
     }
 }

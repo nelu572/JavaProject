@@ -1,12 +1,17 @@
 package com.example.mygame.GameScene.Object;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
+import com.example.mygame.EveryScene.CoverViewport;
 import com.example.mygame.EveryScene.GameObject;
 import com.example.mygame.GameScene.Manager.BulletManager;
 import com.example.mygame.GameScene.Resorces.GameSpriteResources;
+
+import java.util.ArrayList;
 
 public class Bullet extends GameObject {
     private Body body;
@@ -18,8 +23,14 @@ public class Bullet extends GameObject {
 
     private static final float PPM = 100f;
     private static final float BULLET_SPEED = 4000f;
-    private static final float BULLET_RADIUS = 16f;
-    private static final float BULLET_SIZE = 128f;
+    private static final float BULLET_RADIUS = 12f;
+    private static final float BULLET_SIZE = 85f;
+
+    // 궤적 효과를 위한 이전 위치들
+    private ArrayList<Vector2> trail = new ArrayList<>();
+    private static final int MAX_TRAIL_LENGTH = 5; // 궤적 길이
+    private float trailTimer = 0f;
+    private float trailInterval = 0.01f; // 궤적 점 생성 간격
 
     public Bullet(World world, Vector2 startPos, float angle) {
         super(GameSpriteResources.get("sprite/game/bullet/1.png", Texture.class));
@@ -32,9 +43,11 @@ public class Bullet extends GameObject {
 
         createPhysicsBody(startPos, angle);
 
-        // 생성 직후 GameObject 위치 즉시 설정
         setPosition(startPos.x - BULLET_SIZE / 2f, startPos.y - BULLET_SIZE / 2f);
         setRotation(angle);
+
+        // 초기 위치를 궤적에 추가
+        trail.add(new Vector2(startPos.x, startPos.y));
     }
 
     private void createPhysicsBody(Vector2 startPos, float angle) {
@@ -42,7 +55,7 @@ public class Bullet extends GameObject {
         bodyDef.type = BodyDef.BodyType.DynamicBody;
         bodyDef.position.set(startPos.x / PPM, startPos.y / PPM);
         bodyDef.bullet = true;
-        bodyDef.gravityScale = 0f; // 중력 영향 받지 않음
+        bodyDef.gravityScale = 0f;
 
         body = world.createBody(bodyDef);
 
@@ -51,11 +64,10 @@ public class Bullet extends GameObject {
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = circle;
-        fixtureDef.isSensor = true; // 여기서 트리거처럼 설정
+        fixtureDef.isSensor = true;
         fixtureDef.density = 1f;
         fixtureDef.friction = 0f;
-        fixtureDef.restitution = 0f; // 반발력 제거
-
+        fixtureDef.restitution = 0f;
 
         body.createFixture(fixtureDef);
         circle.dispose();
@@ -74,6 +86,7 @@ public class Bullet extends GameObject {
         if (!alive) return;
 
         lifeTime += delta;
+        trailTimer += delta;
 
         if (lifeTime >= maxLifeTime) {
             destroy();
@@ -81,14 +94,29 @@ public class Bullet extends GameObject {
         }
 
         Vector2 pos = body.getPosition();
-        setPosition(pos.x * PPM - BULLET_SIZE / 2f, pos.y * PPM - BULLET_SIZE / 2f);
+        float centerX = pos.x * PPM;
+        float centerY = pos.y * PPM;
+
+        setPosition(centerX - BULLET_SIZE / 2f, centerY - BULLET_SIZE / 2f);
         setRotation(angle);
+
+        // 궤적 업데이트
+        if (trailTimer >= trailInterval) {
+            trail.add(new Vector2(centerX, centerY));
+            trailTimer = 0f;
+
+            // 궤적이 너무 길어지면 오래된 것 제거
+            if (trail.size() > MAX_TRAIL_LENGTH) {
+                trail.remove(0);
+            }
+        }
     }
 
-    @Override
-    public void render(SpriteBatch batch) {
+    public void render(SpriteBatch batch, ShapeRenderer shapeRenderer, CoverViewport viewport) {
         if (!alive) return;
 
+        // 총알 본체 렌더링 (더 밝게)
+        batch.setColor(1.5f, 1.2f, 1f, 1f);
         batch.draw(getTexture(),
             getX(), getY(),
             BULLET_SIZE / 2f, BULLET_SIZE / 2f,
@@ -98,11 +126,34 @@ public class Bullet extends GameObject {
             0, 0,
             getTexture().getWidth(), getTexture().getHeight(),
             false, false);
+        batch.setColor(1f, 1f, 1f, 1f);
+        // 궤적 효과 렌더링
+        if (trail.size() > 1) {
+            batch.end();
+
+            shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
+            shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+
+            for (int i = 0; i < trail.size() - 1; i++) {
+                Vector2 p1 = trail.get(i);
+                Vector2 p2 = trail.get(i + 1);
+
+                // 궤적이 오래될수록 투명하고 얇게
+                float alpha = (float) i / trail.size();
+                float width = 4f * alpha;
+
+                // 노란색-주황색 그라디언트 효과
+                shapeRenderer.setColor(1f, 0.8f - (0.3f * alpha), 0.2f, alpha * 0.8f);
+                shapeRenderer.rectLine(p1.x, p1.y, p2.x, p2.y, width);
+            }
+
+            shapeRenderer.end();
+            batch.begin();
+        }
     }
 
     @Override
     public void onHit() {
-        // 바로 삭제하지 않고 요청만 등록
         BulletManager.requestDestroy(this);
     }
 
@@ -110,8 +161,10 @@ public class Bullet extends GameObject {
         if (!alive) return;
 
         alive = false;
+        trail.clear();
+
         if (body != null) {
-            world.destroyBody(body); // 여기서는 Step이 끝난 후 안전하게 호출
+            world.destroyBody(body);
             body = null;
         }
     }

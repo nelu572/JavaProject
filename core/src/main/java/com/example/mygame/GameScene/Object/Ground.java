@@ -8,20 +8,21 @@ import com.example.mygame.GameScene.Resorces.GameSpriteResources;
 public class Ground extends GameObject {
     private Body body;
     public static final float PPM = 100f;  // Pixels Per Meter
+    private World world;
 
     public Ground(World world) {
         super(GameSpriteResources.get("sprite/game/img/ground.png", Texture.class));
-
+        this.world = world;
         // 바닥 위치 및 크기 설정
-        Texture groundTexture = GameSpriteResources.get("sprite/game/img/ground.png", Texture.class);
+        Texture groundTexture = getTexture();
         super.setSize(groundTexture.getWidth(), groundTexture.getHeight());
         super.setPosition(-2560/2f, -1440/2f);
 
         // Box2D Body 생성
-        createBody(world);
+        createBody();
     }
 
-    private void createBody(World world) {
+    private void createBody() {
         // Body 정의 (정적 - 움직이지 않음)
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.StaticBody;

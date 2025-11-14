@@ -1,6 +1,8 @@
 package com.example.mygame.GameScene.Object;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
@@ -21,14 +23,14 @@ public class Player extends GameObject {
         this.viewport = viewport;
 
         super.setPosition(-830, -340);
-        Texture playerTexture = GameSpriteResources.get("sprite/game/player/idle1.png", Texture.class);
+        Texture playerTexture = getTexture();
         super.setSize(playerTexture.getWidth() * 6f, playerTexture.getHeight() * 6f);
 
-        createBody(world);
+        createBody();
         gun = new Gun(this, viewport, world);
     }
 
-    private void createBody(World world) {
+    private void createBody() {
         BodyDef bodyDef = new BodyDef();
         bodyDef.type = BodyDef.BodyType.DynamicBody;  // 동적 (중력 적용)
         bodyDef.position.set(
@@ -54,6 +56,7 @@ public class Player extends GameObject {
 
     @Override
     public void update(float delta) {
+
         // Box2D Body 위치를 GameObject에 동기화
         Vector2 position = body.getPosition();
         setPosition(

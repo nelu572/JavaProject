@@ -28,7 +28,6 @@ public class MainScreen implements Screen {
 
     @Override
     public void show() {
-        MainResources.init();
         MainResources.loadAssets();
         MainResources.finishLoading();
 
