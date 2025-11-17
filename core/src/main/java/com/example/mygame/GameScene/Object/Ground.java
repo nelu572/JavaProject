@@ -44,7 +44,7 @@ public class Ground extends GameObject {
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;
         fixtureDef.density = 1f;
-        fixtureDef.friction = 0.5f;
+        fixtureDef.friction = 0.25f;
         fixtureDef.restitution = 0f;  // 반발력 없음
 
         body.createFixture(fixtureDef);

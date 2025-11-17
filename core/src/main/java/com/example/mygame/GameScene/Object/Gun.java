@@ -46,7 +46,7 @@ public class Gun extends GameObject {
 
     // 발사 쿨타임
     private float shootCooldown = 0f;
-    private float shootDelay = 0.1f; // 0.1초마다 발사 가능
+    private float shootDelay = 0f; // 0.1초마다 발사 가능
 
     public Gun(Player player, CoverViewport viewport, World world) {
         super(GameSpriteResources.get("sprite/game/gun/M92.png", Texture.class));
@@ -83,10 +83,18 @@ public class Gun extends GameObject {
             world.rayCast(new RayCastCallback() {
                 @Override
                 public float reportRayFixture(Fixture fixture, Vector2 point, Vector2 normal, float fraction) {
+
+                    // fixture가 가진 Body가 Tower인지 확인
+                    if (fixture.getBody().getUserData() instanceof Tower) {
+                        return 1f; // Tower는 무시
+                    }
+
+                    // Tower가 아니면 충돌 처리
                     hitPoint.set(point.x * PPM, point.y * PPM);
                     return fraction;
                 }
             }, rayStart, rayEnd);
+
 
             // 레이저 렌더링
             batch.end();

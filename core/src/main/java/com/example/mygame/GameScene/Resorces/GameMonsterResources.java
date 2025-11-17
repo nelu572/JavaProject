@@ -11,27 +11,33 @@ public class GameMonsterResources {
     }
 
     public static void loadAssets() {
-        GameAssetManager.load("sprite/game/monster/slime/jump/start/1.png", Texture.class);
-        GameAssetManager.load("sprite/game/monster/slime/jump/start/2.png", Texture.class);
-        GameAssetManager.load("sprite/game/monster/slime/jump/start/3.png", Texture.class);
-        GameAssetManager.load("sprite/game/monster/slime/jump/start/4.png", Texture.class);
-        GameAssetManager.load("sprite/game/monster/slime/jump/start/5.png", Texture.class);
-        GameAssetManager.load("sprite/game/monster/slime/jump/start/6.png", Texture.class);
-        GameAssetManager.load("sprite/game/monster/slime/jump/start/7.png", Texture.class);
-        GameAssetManager.load("sprite/game/monster/slime/jump/start/8.png", Texture.class);
-        GameAssetManager.load("sprite/game/monster/slime/jump/start/9.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/slime/idle/1.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/slime/hurt/1.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/slime/hurt/2.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/slime/hurt/3.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/slime/hurt/4.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/slime/hurt/5.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/slime/hurt/6.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/slime/hurt/7.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/slime/hurt/8.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/slime/hurt/9.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/slime/hurt/10.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/slime/hurt/11.png", Texture.class);
     }
 
     public static void unloadAssets() {
-        unloadAsset("sprite/game/monster/slime/jump/start/1.png");
-        unloadAsset("sprite/game/monster/slime/jump/start/2.png");
-        unloadAsset("sprite/game/monster/slime/jump/start/3.png");
-        unloadAsset("sprite/game/monster/slime/jump/start/4.png");
-        unloadAsset("sprite/game/monster/slime/jump/start/5.png");
-        unloadAsset("sprite/game/monster/slime/jump/start/6.png");
-        unloadAsset("sprite/game/monster/slime/jump/start/7.png");
-        unloadAsset("sprite/game/monster/slime/jump/start/8.png");
-        unloadAsset("sprite/game/monster/slime/jump/start/9.png");
+        unloadAsset("sprite/game/monster/slime/idle/1.png");
+        unloadAsset("sprite/game/monster/slime/hurt/1.png");
+        unloadAsset("sprite/game/monster/slime/hurt/2.png");
+        unloadAsset("sprite/game/monster/slime/hurt/3.png");
+        unloadAsset("sprite/game/monster/slime/hurt/4.png");
+        unloadAsset("sprite/game/monster/slime/hurt/5.png");
+        unloadAsset("sprite/game/monster/slime/hurt/6.png");
+        unloadAsset("sprite/game/monster/slime/hurt/7.png");
+        unloadAsset("sprite/game/monster/slime/hurt/8.png");
+        unloadAsset("sprite/game/monster/slime/hurt/9.png");
+        unloadAsset("sprite/game/monster/slime/hurt/10.png");
+        unloadAsset("sprite/game/monster/slime/hurt/11.png");
     }
     private static void unloadAsset(String name) {
         if (GameAssetManager.isLoaded(name)) GameAssetManager.unload(name);

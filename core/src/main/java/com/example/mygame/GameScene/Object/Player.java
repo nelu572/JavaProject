@@ -32,7 +32,7 @@ public class Player extends GameObject {
 
     private void createBody() {
         BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.DynamicBody;  // 동적 (중력 적용)
+        bodyDef.type = BodyDef.BodyType.StaticBody;  // 동적 (중력 적용)
         bodyDef.position.set(
             (getX() + getWidth() / 2f) / PPM,
             (getY() + getHeight() / 2f) / PPM
