@@ -10,7 +10,6 @@ public class MainResources {
         MainAssetManager = new AssetManager();
     }
 
-    // 🔹 Main 씬 전용 로딩
     public static void loadAssets() {
         MainAssetManager.load("sprite/main/img/BG.png", Texture.class);
         MainAssetManager.load("sprite/main/img/Title.png", Texture.class);
@@ -20,7 +19,6 @@ public class MainResources {
         MainAssetManager.load("sprite/main/button/Exit_bnt_hover.png", Texture.class);
     }
 
-    // 🔹 Main 씬 리소스만 언로드
     public static void unloadAssets() { // 추가
         unloadAsset("sprite/main/img/BG.png");
         unloadAsset("sprite/main/img/Title.png");
@@ -40,7 +38,6 @@ public class MainResources {
         return MainAssetManager.get(path, type);
     }
 
-    // 🔹 게임 종료 시 전체 dispose
     public static void dispose() {
         if (MainAssetManager != null) {
             MainAssetManager.dispose();

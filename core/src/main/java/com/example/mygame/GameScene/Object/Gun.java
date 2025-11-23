@@ -35,7 +35,7 @@ public class Gun extends GameObject {
     private float muzzleY = 0.735f;
 
     private float recoilOffset = 0f;
-    private float recoilRecovery = 15f;
+    private float recoilRecovery = 20f;
 
     private ShapeRenderer shapeRenderer;
 
@@ -45,8 +45,6 @@ public class Gun extends GameObject {
     private ArrayList<Bullet> bullets = new ArrayList<>();
 
     // 발사 쿨타임
-    private float shootCooldown = 0f;
-    private float shootDelay = 0f; // 0.1초마다 발사 가능
 
     public Gun(Player player, CoverViewport viewport, World world) {
         super(GameSpriteResources.get("sprite/game/gun/M92.png", Texture.class));
@@ -140,11 +138,6 @@ public class Gun extends GameObject {
         super.update(delta);
         updatePosition();
 
-        // 발사 쿨타임 감소
-        if (shootCooldown > 0) {
-            shootCooldown -= delta;
-        }
-
         Vector3 mousePos = viewport.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
         float gunPivotWorldX = getX() + getWidth() * pivotX;
         float gunPivotWorldY = getY() + getHeight() * pivotY;
@@ -184,7 +177,7 @@ public class Gun extends GameObject {
         }
 
         // 연사 가능하도록 수정
-        if(Gdx.input.isButtonPressed(Input.Buttons.LEFT) && aiming && shootCooldown <= 0) {
+        if(Gdx.input.isButtonPressed(Input.Buttons.LEFT) && aiming) {
             shoot();
         }
     }
@@ -198,9 +191,6 @@ public class Gun extends GameObject {
 
         // 반동 추가
         recoilOffset = 10f;
-
-        // 발사 쿨타임 설정
-        shootCooldown = shootDelay;
     }
 
     public Vector2 getMuzzleWorldPosition() {

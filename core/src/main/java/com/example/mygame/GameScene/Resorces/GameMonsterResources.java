@@ -20,9 +20,6 @@ public class GameMonsterResources {
         GameAssetManager.load("sprite/game/monster/slime/hurt/6.png", Texture.class);
         GameAssetManager.load("sprite/game/monster/slime/hurt/7.png", Texture.class);
         GameAssetManager.load("sprite/game/monster/slime/hurt/8.png", Texture.class);
-        GameAssetManager.load("sprite/game/monster/slime/hurt/9.png", Texture.class);
-        GameAssetManager.load("sprite/game/monster/slime/hurt/10.png", Texture.class);
-        GameAssetManager.load("sprite/game/monster/slime/hurt/11.png", Texture.class);
     }
 
     public static void unloadAssets() {
@@ -35,9 +32,6 @@ public class GameMonsterResources {
         unloadAsset("sprite/game/monster/slime/hurt/6.png");
         unloadAsset("sprite/game/monster/slime/hurt/7.png");
         unloadAsset("sprite/game/monster/slime/hurt/8.png");
-        unloadAsset("sprite/game/monster/slime/hurt/9.png");
-        unloadAsset("sprite/game/monster/slime/hurt/10.png");
-        unloadAsset("sprite/game/monster/slime/hurt/11.png");
     }
     private static void unloadAsset(String name) {
         if (GameAssetManager.isLoaded(name)) GameAssetManager.unload(name);

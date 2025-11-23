@@ -21,7 +21,6 @@ public class MainUI extends UIManager {
         Texture exitUp = MainResources.get("sprite/main/button/Exit_bnt.png", Texture.class);
         Texture exitOver = MainResources.get("sprite/main/button/Exit_bnt_hover.png", Texture.class);
 
-        // 🔹 배경 이미지를 뷰포트 크기에 맞게 비율 유지하면서 꽉 채우기
         background = new Image(bg);
 
         float viewportWidth = viewport.getWorldWidth();

@@ -7,7 +7,7 @@ import com.example.mygame.GameScene.Resorces.GameSpriteResources;
 
 public class Ground extends GameObject {
     private Body body;
-    public static final float PPM = 100f;  // Pixels Per Meter
+    public static final float PPM = 100f;
     private World world;
 
     public Ground(World world) {
@@ -36,7 +36,7 @@ public class Ground extends GameObject {
         // 충돌 Shape 정의 (사각형)
         PolygonShape shape = new PolygonShape();
         shape.setAsBox(
-            getWidth() / 2f / PPM,
+            getWidth() * 4f / PPM,
             getHeight() / 2f / PPM
         );
 

@@ -31,12 +31,10 @@ public class MyContactListener implements ContactListener {
                                         java.util.function.Consumer<U> actionB) {
 
         if (typeA.isInstance(a) && typeB.isInstance(b)) {
-            System.out.println("gkgkgkg");
             if (actionA != null) actionA.accept(typeA.cast(a));
             if (actionB != null) actionB.accept(typeB.cast(b));
         }
         else if (typeA.isInstance(b) && typeB.isInstance(a)) {
-            System.out.println("gkgkg");
             if (actionA != null) actionA.accept(typeA.cast(b));
             if (actionB != null) actionB.accept(typeB.cast(a));
         }

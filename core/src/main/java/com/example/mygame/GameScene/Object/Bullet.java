@@ -115,7 +115,7 @@ public class Bullet extends GameObject {
     public void render(SpriteBatch batch, ShapeRenderer shapeRenderer, CoverViewport viewport) {
         if (!alive) return;
 
-        // 총알 본체 렌더링 (더 밝게)
+        // 총알 본체 렌더링
         batch.setColor(1.5f, 1.2f, 1f, 1f);
         batch.draw(getTexture(),
             getX(), getY(),
