@@ -22,9 +22,9 @@ public class Player extends GameObject {
         this.world = world;
         this.viewport = viewport;
 
-        super.setPosition(-830, -340);
+        super.setPosition(-830, -315);
         Texture playerTexture = getTexture();
-        super.setSize(playerTexture.getWidth() * 6f, playerTexture.getHeight() * 6f);
+        super.setSize(playerTexture.getWidth() * 7f, playerTexture.getHeight() * 7f);
 
         createBody();
         gun = new Gun(this, viewport, world);
@@ -32,7 +32,7 @@ public class Player extends GameObject {
 
     private void createBody() {
         BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.StaticBody;  // 동적 (중력 적용)
+        bodyDef.type = BodyDef.BodyType.StaticBody;
         bodyDef.position.set(
             (getX() + getWidth() / 2f) / PPM,
             (getY() + getHeight() / 2f) / PPM

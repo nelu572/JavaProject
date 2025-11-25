@@ -35,10 +35,10 @@ public class Slime extends GameObject {
 
     // 공격 시작 위치 저장
     private Vector2 attackStartPosition = new Vector2();
-    private float attackDistance = 3.0f;  // 공격 거리 (미터 단위)
+    private float attackDistance = 1.5f;  // 공격 거리 (미터 단위)
 
     // 공격 쿨타임
-    private static final float attack_delay = 2.0f;
+    private static final float attack_delay = 1.0f;
     private float attack_cooldown = 0f;
 
     // 위치 이동 대기열

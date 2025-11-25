@@ -4,12 +4,14 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.*;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.example.mygame.EveryScene.CoverViewport;
 import com.example.mygame.EveryScene.CursorManager;
+import com.example.mygame.EveryScene.FontManager;
 import com.example.mygame.GameScene.Manager.BulletManager;
 import com.example.mygame.GameScene.Manager.MyContactListener;
 import com.example.mygame.GameScene.Object.Ground;
@@ -19,6 +21,8 @@ import com.example.mygame.GameScene.Object.Tower;
 import com.example.mygame.GameScene.Resorces.GameMonsterResources;
 import com.example.mygame.GameScene.Resorces.GameSpriteResources;
 import com.example.mygame.GameScene.Resorces.GameUIResources;
+import com.example.mygame.GameScene.UI.Canvas;
+import com.example.mygame.GameScene.UI.GameUI;
 import com.example.mygame.Main;
 
 import java.util.ArrayList;
@@ -41,6 +45,7 @@ public class GameScreen implements Screen {
     private Player player;
     private ArrayList<Slime> slimes =  new ArrayList<>();
 
+    private Canvas canvas;
     public GameScreen(Main main) {
         this.main = main;
     }
@@ -76,8 +81,9 @@ public class GameScreen implements Screen {
         debugRenderer = new Box2DDebugRenderer();
 
         gameUI = new GameUI(viewport);
-        gameUI.drawUI(backstage, gameUI.getBackground());
+        gameUI.drawBackground(backstage);
 
+        canvas = new Canvas(viewport,batch);
         // GameObject들을 Box2D Body와 함께 생성
         ground = new Ground(world);
         tower = new Tower(world,1);
@@ -122,8 +128,8 @@ public class GameScreen implements Screen {
             slime.render(batch);
         }
         CursorManager.draw(batch, viewport);
+        canvas.drawHP();
         batch.end();
-
         // 디버그 렌더링 (충돌 박스 보기 - 개발 중에만 사용)
         debugRenderer.render(world, viewport.getCamera().combined.cpy().scl(PPM));
     }
