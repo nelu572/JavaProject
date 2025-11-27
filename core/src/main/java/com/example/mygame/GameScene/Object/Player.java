@@ -24,7 +24,7 @@ public class Player extends GameObject {
 
         super.setPosition(-830, -315);
         Texture playerTexture = getTexture();
-        super.setSize(playerTexture.getWidth() * 7f, playerTexture.getHeight() * 7f);
+        super.setSize(playerTexture.getWidth() * 7.5f, playerTexture.getHeight() * 7.5f);
 
         createBody();
         gun = new Gun(this, viewport, world);

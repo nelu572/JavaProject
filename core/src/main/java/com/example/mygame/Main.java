@@ -35,6 +35,13 @@ public class Main extends Game {
             Color.WHITE,            // 글자 색상
             "" // 추가 한글 문자
         );
+        FontManager.loadFont(
+            "Galmuri-Bold_BIG",                 // 폰트 이름
+            "ui/Galmuri11-Bold.ttf",      // TTF 경로
+            100,                     // 글자 크기
+            Color.WHITE,            // 글자 색상
+            "" // 추가 한글 문자
+        );
     }
     public void ChangeScene(String Scene) {
         this.Scene = Scene;

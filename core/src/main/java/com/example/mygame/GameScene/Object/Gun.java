@@ -51,9 +51,9 @@ public class Gun extends GameObject {
         this.player = player;
         this.viewport = viewport;
         this.world = world;
-        super.setSize(19 * 4.5f, 12 * 4.5f);
+        super.setSize(19 * 5.5f, 12 * 5.5f);
         shapeRenderer = new ShapeRenderer();
-        updatePosition();
+        updatePosition();   
     }
 
     @Override

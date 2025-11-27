@@ -119,6 +119,8 @@ public class GameScreen implements Screen {
         backstage.draw();
     }
     private void rendering(){
+
+        // 그 다음 게임 오브젝트들 그리기
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
         ground.render(batch);
@@ -127,10 +129,14 @@ public class GameScreen implements Screen {
         for(Slime slime: slimes){
             slime.render(batch);
         }
-        CursorManager.draw(batch, viewport);
-        canvas.drawHP();
         batch.end();
-        // 디버그 렌더링 (충돌 박스 보기 - 개발 중에만 사용)
+        // HP바 먼저 그리기 (Stage가 자체 batch 관리)
+        canvas.render();
+
+        batch.begin();
+        CursorManager.draw(batch, viewport);
+        batch.end();
+        // 디버그 렌더링
         debugRenderer.render(world, viewport.getCamera().combined.cpy().scl(PPM));
     }
 

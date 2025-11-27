@@ -12,10 +12,17 @@ public class GameUIResources {
 
     public static void loadAssets() {
         GameAssetManager.load("sprite/game/ui/img/BG.png", Texture.class);
+        GameAssetManager.load("sprite/game/ui/tower_hp/background.png", Texture.class);
+        GameAssetManager.load("sprite/game/ui/tower_hp/filled.png", Texture.class);
+        GameAssetManager.load("sprite/game/ui/icon/coin.png", Texture.class);
+
     }
 
     public static void unloadAssets() { // 추가
         unloadAsset("sprite/game/ui/img/BG.png");
+        unloadAsset("sprite/game/ui/tower_hp/background.png");
+        unloadAsset("sprite/game/ui/tower_hp/filled.png");
+        unloadAsset("sprite/game/ui/icon/coin.png");
     }
     private static void unloadAsset(String name) {
         if (GameAssetManager.isLoaded(name)) GameAssetManager.unload(name);

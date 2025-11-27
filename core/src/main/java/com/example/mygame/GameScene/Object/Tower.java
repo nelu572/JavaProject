@@ -21,7 +21,7 @@ public class Tower extends GameObject {
         super(GameSpriteResources.get("sprite/game/tower/LV1.png", Texture.class));
 
         super.setSize(32 * 7, 24 * 7);
-        super.setPosition(-920, -483);
+        super.setPosition(-940, -483);
 
         textures.add(GameSpriteResources.get("sprite/game/tower/LV1.png", Texture.class));
         textures.add(GameSpriteResources.get("sprite/game/tower/LV2.png", Texture.class));
