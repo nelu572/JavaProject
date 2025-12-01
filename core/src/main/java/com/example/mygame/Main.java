@@ -33,7 +33,7 @@ public class Main extends Game {
             "ui/Galmuri11-Bold.ttf",      // TTF 경로
             64,                     // 글자 크기
             Color.WHITE,            // 글자 색상
-            "" // 추가 한글 문자
+            "현재 레벨" // 추가 한글 문자
         );
         FontManager.loadFont(
             "Galmuri-Bold_BIG",                 // 폰트 이름
@@ -41,6 +41,13 @@ public class Main extends Game {
             100,                     // 글자 크기
             Color.WHITE,            // 글자 색상
             "" // 추가 한글 문자
+        );
+        FontManager.loadFont(
+            "Galmuri-9",                 // 폰트 이름
+            "ui/Galmuri9.ttf",      // TTF 경로
+            64,                     // 글자 크기
+            Color.WHITE,            // 글자 색상
+            "현재레벨코인비용초" // 추가 한글 문자
         );
     }
     public void ChangeScene(String Scene) {
