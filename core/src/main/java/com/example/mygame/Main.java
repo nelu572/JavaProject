@@ -65,7 +65,6 @@ public class Main extends Game {
         return Scene;
     }
     public void dispose(){
-        System.out.println("dispose");
         CursorManager.getCursor().getTexture().dispose();
         MainResources.dispose();
         GameUIResources.dispose();

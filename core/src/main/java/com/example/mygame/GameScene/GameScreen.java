@@ -1,6 +1,7 @@
 package com.example.mygame.GameScene;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -24,6 +25,7 @@ import com.example.mygame.GameScene.Resorces.GameMonsterResources;
 import com.example.mygame.GameScene.Resorces.GameSpriteResources;
 import com.example.mygame.GameScene.Resorces.GameUIResources;
 import com.example.mygame.GameScene.UI.Canvas;
+import com.example.mygame.GameScene.UI.ESCMenuCanvas;
 import com.example.mygame.GameScene.UI.GameUI;
 import com.example.mygame.GameScene.UI.UpgradeCanvas;
 import com.example.mygame.Main;
@@ -31,6 +33,8 @@ import com.example.mygame.Main;
 import java.util.ArrayList;
 
 public class GameScreen implements Screen {
+    private ESCMenuCanvas escMenuCanvas;
+
     private OrthographicCamera camera;
     private SpriteBatch batch;
     private Stage backstage;
@@ -92,6 +96,7 @@ public class GameScreen implements Screen {
 
         canvas = new Canvas(viewport, batch);
         upgradeCanvas = new UpgradeCanvas(viewport, batch);
+        escMenuCanvas = new ESCMenuCanvas(viewport, batch, main);
 
         // 초기 상태는 업그레이드 모드
         Gdx.input.setInputProcessor(upgradeCanvas.getStage());
@@ -104,6 +109,20 @@ public class GameScreen implements Screen {
         player = new Player(world, viewport);
     }
 
+    // -----------------------------
+    // 메인 메뉴로 이동
+    // -----------------------------
+    private void goToMainMenu() {
+        // 리소스 정리
+        dispose();
+
+        // 메인 메뉴로 이동 (Main 클래스에 메인 메뉴 Screen이 있다고 가정)
+        // main.setScreen(main.getMainMenuScreen());
+
+        // 또는 게임 종료
+        Gdx.app.exit();
+    }
+
     @Override
     public void render(float delta) {
         batch.setProjectionMatrix(backstage.getCamera().combined);
@@ -111,11 +130,12 @@ public class GameScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        if (Gdx.input.isKeyJustPressed(com.badlogic.gdx.Input.Keys.ESCAPE)) {
-            main.ChangeScene("Main");
-        }
-
         world.step(1/60f, 6, 2);
+
+        // ESC 메뉴가 보이지 않을 때만 ESC 키 처리
+        if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) && !escMenuCanvas.isVisible()) {
+            escMenuCanvas.toggle();
+        }
 
         update(delta);
 
@@ -127,23 +147,27 @@ public class GameScreen implements Screen {
 
         boolean isWaveActive = ValueManager.getisWave();
 
-        // 웨이브 상태가 변경되었을 때만 InputProcessor 전환
-        if (isWaveActive != wasWaveActive) {
-            if (isWaveActive) {
-                // 웨이브 시작: 플레이어 입력으로 전환
-                Gdx.input.setInputProcessor(backstage);
-            } else {
-                // 웨이브 종료: 업그레이드 UI 입력으로 전환
-                Gdx.input.setInputProcessor(upgradeCanvas.getStage());
+        // ESC 메뉴가 열려있지 않을 때만 게임 로직 업데이트
+        if (!escMenuCanvas.isVisible()) {
+            // 웨이브 상태가 변경되었을 때만 InputProcessor 전환
+            if (isWaveActive != wasWaveActive) {
+                if (isWaveActive) {
+                    // 웨이브 시작: 플레이어 입력으로 전환
+                    Gdx.input.setInputProcessor(backstage);
+                } else {
+                    // 웨이브 종료: 업그레이드 UI 입력으로 전환
+                    Gdx.input.setInputProcessor(upgradeCanvas.getStage());
+                }
+                wasWaveActive = isWaveActive;
             }
-            wasWaveActive = isWaveActive;
+
+            if(isWaveActive) {
+                player.update(delta);
+                waveManager.update(delta);
+            }
         }
 
-        if(isWaveActive) {
-            player.update(delta);
-            waveManager.update(delta);
-        }
-
+        // backstage는 항상 렌더링 (gameUI 배경 포함)
         backstage.act(delta);
         backstage.draw();
     }
@@ -165,6 +189,11 @@ public class GameScreen implements Screen {
 
         if(!ValueManager.getisWave()) {
             upgradeCanvas.render();
+        }
+
+        // ESC 메뉴는 맨 위에 렌더링
+        if (escMenuCanvas.isVisible()) {
+            escMenuCanvas.render();
         }
 
         batch.begin();
@@ -198,5 +227,7 @@ public class GameScreen implements Screen {
         world.dispose();
         debugRenderer.dispose();
         upgradeCanvas.dispose();
+        escMenuCanvas.dispose();
+        canvas.dispose();
     }
 }

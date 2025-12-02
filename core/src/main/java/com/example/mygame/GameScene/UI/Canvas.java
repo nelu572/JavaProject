@@ -25,19 +25,16 @@ public class Canvas extends UIManager {
         float x, y;
         float scaleX, scaleY;
         float width, height;
-        Float r, g, b, a; // null이면 색상 적용 안함
+        Float r, g, b, a;
 
-        // 기본 생성자 (스케일만)
         UIElementConfig(float x, float y, float scale) {
             this(x, y, scale, scale, 0, 0);
         }
 
-        // 가로세로 스케일 따로
         UIElementConfig(float x, float y, float scaleX, float scaleY) {
             this(x, y, scaleX, scaleY, 0, 0);
         }
 
-        // 크기 지정
         UIElementConfig(float x, float y, float scaleX, float scaleY,
                         float width, float height) {
             this.x = x;
@@ -52,7 +49,6 @@ public class Canvas extends UIManager {
             this.a = null;
         }
 
-        // 색상 설정 메서드
         UIElementConfig withColor(float r, float g, float b, float a) {
             this.r = r;
             this.g = g;
@@ -93,34 +89,62 @@ public class Canvas extends UIManager {
     }
 
     // -----------------------------
+    // 코인 UI 구조체
+    // -----------------------------
+    private static class CoinUI {
+        Image icon;
+        Image panel;
+        TextConfig textPos;
+    }
+
+    // -----------------------------
+    // 웨이브 UI 구조체
+    // -----------------------------
+    private static class WaveUI {
+        Image panel;
+        TextConfig textPos;
+    }
+
+    // -----------------------------
+    // 체력바 UI 구조체
+    // -----------------------------
+    private static class HealthBarUI {
+        Slider slider;
+        HealthBarConfig config;
+    }
+
+    // -----------------------------
     // UI 레이아웃 설정
     // -----------------------------
     private static final class Layout {
-        static final UIElementConfig COIN = new UIElementConfig(-1000f, 500f, 7f);
-        static final UIElementConfig COIN_PANEL = new UIElementConfig(-1025f, 480f, 500f, 150f).withColor(0.7f, 0.7f, 0.7f, 0.5f);
-        static final UIElementConfig WAVE_PANEL = new UIElementConfig(350f, 350f, 1f);
+        // 코인
+        static final UIElementConfig CoinIcon = new UIElementConfig(-1000f, 500f, 7f);
+        static final UIElementConfig CoinPanel = new UIElementConfig(-1025f, 480f, 500f, 150f).withColor(0.7f, 0.7f, 0.7f, 0.5f);
+        static final TextConfig CoinText = new TextConfig(-550f, 585f, true);
 
-        static final TextConfig COIN_TEXT = new TextConfig(-550f, 585f, true); // 오른쪽 정렬
-        static final TextConfig WAVE_TEXT = new TextConfig(400f, 450f);
+        // 웨이브
+        static final UIElementConfig WavePanel = new UIElementConfig(350f, 350f, 1f);
+        static final TextConfig WaveText = new TextConfig(400f, 450f);
 
-        static final HealthBarConfig HEALTH_BAR = new HealthBarConfig(
-            -50f, 550f,           // x, y
-            388f * 3f, 32f * 3f, // width, height
-            75f, 100f            // text padding
+        // 체력바
+        static final HealthBarConfig HealthBar = new HealthBarConfig(
+            -50f, 550f,
+            388f * 3f, 32f * 3f,
+            75f, 100f
         );
     }
 
     // -----------------------------
     // Fields
     // -----------------------------
-    private final Slider healthSlider;
-    private final Image coin;
-    private final Image wavePanel;
-    private final Image coinPanel;
     private final Batch batch;
     private final Stage stage;
     private final GlyphLayout glyphLayout;
     private BitmapFont font;
+
+    private CoinUI coinUI;
+    private WaveUI waveUI;
+    private HealthBarUI healthBarUI;
 
     // -----------------------------
     // Constructor
@@ -132,17 +156,63 @@ public class Canvas extends UIManager {
         this.stage.getCamera().update();
         this.glyphLayout = new GlyphLayout();
 
-        // UI 요소들 초기화
-        coin = createImage("sprite/game/ui/icon/coin.png", Layout.COIN);
-        coinPanel = createImage("sprite/game/ui/panel/1.png", Layout.COIN_PANEL);
-        wavePanel = createImage("sprite/game/ui/panel/1.png", Layout.WAVE_PANEL);
-        healthSlider = createHealthSlider();
+        // UI 초기화
+        initCoinUI();
+        initWaveUI();
+        initHealthBarUI();
 
         // Stage에 추가
-        stage.addActor(coinPanel);
-        stage.addActor(wavePanel);
-        stage.addActor(coin);
-        stage.addActor(healthSlider);
+        stage.addActor(coinUI.panel);
+        stage.addActor(coinUI.icon);
+        stage.addActor(waveUI.panel);
+        stage.addActor(healthBarUI.slider);
+    }
+
+    // -----------------------------
+    // 코인 UI 초기화
+    // -----------------------------
+    private void initCoinUI() {
+        coinUI = new CoinUI();
+        coinUI.icon = createImage("sprite/game/ui/icon/coin.png", Layout.CoinIcon);
+        coinUI.panel = createImage("sprite/game/ui/panel/1.png", Layout.CoinPanel);
+        coinUI.textPos = Layout.CoinText;
+    }
+
+    // -----------------------------
+    // 웨이브 UI 초기화
+    // -----------------------------
+    private void initWaveUI() {
+        waveUI = new WaveUI();
+        waveUI.panel = createImage("sprite/game/ui/panel/1.png", Layout.WavePanel);
+        waveUI.textPos = Layout.WaveText;
+    }
+
+    // -----------------------------
+    // 체력바 UI 초기화
+    // -----------------------------
+    private void initHealthBarUI() {
+        healthBarUI = new HealthBarUI();
+        healthBarUI.config = Layout.HealthBar;
+
+        Texture sliderBg = GameUIResources.get("sprite/game/ui/tower_hp/background.png", Texture.class);
+        Texture sliderFill = GameUIResources.get("sprite/game/ui/tower_hp/filled.png", Texture.class);
+
+        TextureRegionDrawable bgDrawable = new TextureRegionDrawable(new TextureRegion(sliderBg));
+        TextureRegionDrawable fillDrawable = new TextureRegionDrawable(new TextureRegion(sliderFill));
+
+        bgDrawable.setMinHeight(healthBarUI.config.height);
+        fillDrawable.setMinHeight(healthBarUI.config.height);
+
+        Slider.SliderStyle sliderStyle = new Slider.SliderStyle();
+        sliderStyle.background = bgDrawable;
+        sliderStyle.knob = null;
+        sliderStyle.knobBefore = fillDrawable;
+
+        healthBarUI.slider = new Slider(0, ValueManager.getMaxTowerHp(), 1, false, sliderStyle);
+        healthBarUI.slider.setValue(ValueManager.getMaxTowerHp());
+        healthBarUI.slider.setDisabled(true);
+        healthBarUI.slider.setPosition(healthBarUI.config.x, healthBarUI.config.y);
+        healthBarUI.slider.setSize(healthBarUI.config.width, healthBarUI.config.height);
     }
 
     // -----------------------------
@@ -152,48 +222,18 @@ public class Canvas extends UIManager {
         Texture texture = GameUIResources.get(path, Texture.class);
         Image image = new Image(texture);
 
-        // 스케일 적용
         image.setScale(config.scaleX, config.scaleY);
 
-        // 크기가 지정되어 있으면 적용
         if (config.width > 0 && config.height > 0) {
             image.setSize(config.width, config.height);
         }
 
-        // 색상 적용
         if (config.r != null) {
             image.setColor(config.r, config.g, config.b, config.a);
         }
 
         image.setPosition(config.x, config.y);
         return image;
-    }
-
-    // -----------------------------
-    // Health Slider 생성
-    // -----------------------------
-    private Slider createHealthSlider() {
-        Texture sliderBg = GameUIResources.get("sprite/game/ui/tower_hp/background.png", Texture.class);
-        Texture sliderFill = GameUIResources.get("sprite/game/ui/tower_hp/filled.png", Texture.class);
-
-        TextureRegionDrawable bgDrawable = new TextureRegionDrawable(new TextureRegion(sliderBg));
-        TextureRegionDrawable fillDrawable = new TextureRegionDrawable(new TextureRegion(sliderFill));
-
-        bgDrawable.setMinHeight(Layout.HEALTH_BAR.height);
-        fillDrawable.setMinHeight(Layout.HEALTH_BAR.height);
-
-        Slider.SliderStyle sliderStyle = new Slider.SliderStyle();
-        sliderStyle.background = bgDrawable;
-        sliderStyle.knob = null;
-        sliderStyle.knobBefore = fillDrawable;
-
-        Slider slider = new Slider(0, ValueManager.getMaxTowerHp(), 1, false, sliderStyle);
-        slider.setValue(ValueManager.getMaxTowerHp());
-        slider.setDisabled(true);
-        slider.setPosition(Layout.HEALTH_BAR.x, Layout.HEALTH_BAR.y);
-        slider.setSize(Layout.HEALTH_BAR.width, Layout.HEALTH_BAR.height);
-
-        return slider;
     }
 
     // -----------------------------
@@ -220,7 +260,7 @@ public class Canvas extends UIManager {
     // -----------------------------
     private void drawWaveText() {
         font.draw(batch, "Wave: " + ValueManager.getWave(),
-            Layout.WAVE_TEXT.x, Layout.WAVE_TEXT.y);
+            waveUI.textPos.x, waveUI.textPos.y);
     }
 
     // -----------------------------
@@ -228,7 +268,7 @@ public class Canvas extends UIManager {
     // -----------------------------
     private void drawCoinText() {
         String text = "" + ValueManager.getCoin();
-        TextConfig config = Layout.COIN_TEXT;
+        TextConfig config = coinUI.textPos;
 
         if (config.rightAlign) {
             glyphLayout.setText(font, text);
@@ -244,7 +284,7 @@ public class Canvas extends UIManager {
     // -----------------------------
     private void drawHealthText() {
         String leftText = "HP";
-        String rightText = (int) healthSlider.getValue() + " / " + ValueManager.getMaxTowerHp();
+        String rightText = (int) healthBarUI.slider.getValue() + " / " + ValueManager.getMaxTowerHp();
 
         glyphLayout.setText(font, leftText);
         float leftTextHeight = glyphLayout.height;
@@ -252,9 +292,9 @@ public class Canvas extends UIManager {
         glyphLayout.setText(font, rightText);
         float rightTextWidth = glyphLayout.width;
 
-        HealthBarConfig bar = Layout.HEALTH_BAR;
-        float barX = healthSlider.getX();
-        float barY = healthSlider.getY() + 4;
+        HealthBarConfig bar = healthBarUI.config;
+        float barX = healthBarUI.slider.getX();
+        float barY = healthBarUI.slider.getY() + 4;
 
         float leftTextX = barX + bar.textLeftPadding;
         float leftTextY = barY + bar.height / 2 + leftTextHeight / 2;
@@ -270,7 +310,7 @@ public class Canvas extends UIManager {
     // Set Health
     // -----------------------------
     public void setHealth() {
-        healthSlider.setValue(ValueManager.getTower_hp());
+        healthBarUI.slider.setValue(ValueManager.getTower_hp());
     }
 
     // -----------------------------
