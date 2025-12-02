@@ -15,6 +15,7 @@ import com.badlogic.gdx.physics.box2d.RayCastCallback;
 import com.badlogic.gdx.physics.box2d.World;
 import com.example.mygame.EveryScene.CoverViewport;
 import com.example.mygame.EveryScene.GameObject;
+import com.example.mygame.GameScene.Manager.ValueManager;
 import com.example.mygame.GameScene.Resorces.GameSpriteResources;
 
 import java.util.ArrayList;
@@ -35,7 +36,8 @@ public class Gun extends GameObject {
     private float muzzleY = 0.735f;
 
     private float recoilOffset = 0f;
-    private float recoilRecovery = 20f;
+    private static final float BASE_RECOIL_RECOVERY = 20f;  // 기본 반동 회복 속도
+    private float currentRecoilRecovery = BASE_RECOIL_RECOVERY;
 
     private ShapeRenderer shapeRenderer;
 
@@ -44,7 +46,10 @@ public class Gun extends GameObject {
 
     private ArrayList<Bullet> bullets = new ArrayList<>();
 
-    // 발사 쿨타임
+    // 발사 속도 관련
+    private static final float BASE_FIRE_INTERVAL = 0.5f;  // 기본 발사 간격 (0.5초)
+    private float currentFireInterval = BASE_FIRE_INTERVAL;
+    private float fireTimer = 0f;  // 발사 타이머
 
     public Gun(Player player, CoverViewport viewport, World world) {
         super(GameSpriteResources.get("sprite/game/gun/M92.png", Texture.class));
@@ -53,7 +58,7 @@ public class Gun extends GameObject {
         this.world = world;
         super.setSize(19 * 5.5f, 12 * 5.5f);
         shapeRenderer = new ShapeRenderer();
-        updatePosition();   
+        updatePosition();
     }
 
     @Override
@@ -171,26 +176,47 @@ public class Gun extends GameObject {
             }
         }
 
+        // ValueManager에서 발사 속도 가져오기
+        float fireRate = ValueManager.getPlayerFireRate();
+
+        // 발사 간격 계산 (발사 속도에 반비례)
+        currentFireInterval = BASE_FIRE_INTERVAL / fireRate;
+
+        // 반동 회복 속도도 발사 속도에 비례해서 빠르게
+        currentRecoilRecovery = BASE_RECOIL_RECOVERY * fireRate;
+
+        // 반동 회복 (발사 속도가 빠를수록 빠르게 회복)
         if(recoilOffset > 0) {
-            recoilOffset = Math.max(0, recoilOffset - recoilRecovery * delta);
-            aiming = false;
+            recoilOffset = Math.max(0, recoilOffset - currentRecoilRecovery * delta);
+            if(recoilOffset <= 0) {
+                aiming = true;  // 반동이 완전히 회복되면 다시 조준 가능
+            } else {
+                aiming = false;  // 반동 중에는 조준 불가
+            }
         }
 
-        // 연사 가능하도록 수정
-        if(Gdx.input.isButtonPressed(Input.Buttons.LEFT) && aiming) {
+        // 발사 타이머 업데이트
+        if(fireTimer > 0) {
+            fireTimer -= delta;
+        }
+
+        // 마우스 버튼을 누르고 있고, 조준 중이며, 타이머가 끝났을 때 발사
+        if(Gdx.input.isButtonPressed(Input.Buttons.LEFT) && aiming && fireTimer <= 0) {
             shoot();
         }
     }
 
     public void shoot() {
-        aiming = false;
-
         Vector2 muzzlePos = getMuzzleWorldPosition();
         Bullet bullet = new Bullet(world, muzzlePos, angle);
         bullets.add(bullet);
 
         // 반동 추가
         recoilOffset = 10f;
+        aiming = false;
+
+        // 발사 타이머 리셋 (현재 발사 간격만큼)
+        fireTimer = currentFireInterval;
     }
 
     public Vector2 getMuzzleWorldPosition() {

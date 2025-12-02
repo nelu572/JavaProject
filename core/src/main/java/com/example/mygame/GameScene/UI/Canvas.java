@@ -209,7 +209,7 @@ public class Canvas extends UIManager {
         sliderStyle.knobBefore = fillDrawable;
 
         healthBarUI.slider = new Slider(0, ValueManager.getMaxTowerHp(), 1, false, sliderStyle);
-        healthBarUI.slider.setValue(ValueManager.getMaxTowerHp());
+        healthBarUI.slider.setValue(ValueManager.getTower_hp());
         healthBarUI.slider.setDisabled(true);
         healthBarUI.slider.setPosition(healthBarUI.config.x, healthBarUI.config.y);
         healthBarUI.slider.setSize(healthBarUI.config.width, healthBarUI.config.height);
@@ -284,7 +284,7 @@ public class Canvas extends UIManager {
     // -----------------------------
     private void drawHealthText() {
         String leftText = "HP";
-        String rightText = (int) healthBarUI.slider.getValue() + " / " + ValueManager.getMaxTowerHp();
+        String rightText = ValueManager.getTower_hp() + " / " + ValueManager.getMaxTowerHp();
 
         glyphLayout.setText(font, leftText);
         float leftTextHeight = glyphLayout.height;
@@ -310,6 +310,9 @@ public class Canvas extends UIManager {
     // Set Health
     // -----------------------------
     public void setHealth() {
+        // 최대값 업데이트 (업그레이드로 최대 HP 증가 시 슬라이더 범위도 확장)
+        healthBarUI.slider.setRange(0, ValueManager.getMaxTowerHp());
+        // 현재값 업데이트
         healthBarUI.slider.setValue(ValueManager.getTower_hp());
     }
 

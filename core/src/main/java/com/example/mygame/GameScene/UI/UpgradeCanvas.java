@@ -1,6 +1,7 @@
 package com.example.mygame.GameScene.UI;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -100,6 +101,7 @@ public class UpgradeCanvas extends UIManager {
         // 텍스트 위치
         TextConfig UpgradeCostPos;
         TextConfig UpgradeLevelPos;
+        TextConfig HPIncreasePos;
     }
 
     // -----------------------------
@@ -107,14 +109,15 @@ public class UpgradeCanvas extends UIManager {
     // -----------------------------
     private static class PlayerUpgradePanel {
         Image background;
-        Image panel;  // 하나의 패널만 사용
-        ImageButton upgradeButton;  // 하나의 업그레이드 버튼
-        ImageButton toggleButton;   // 토글 버튼 추가
+        Image panel;
+        ImageButton upgradeButton;
+        ImageButton toggleButton;
         ImageButton backButton;
 
         // 텍스트 위치
         TextConfig costPos;
         TextConfig valuePos;
+        TextConfig levelPos;
     }
 
     // -----------------------------
@@ -153,16 +156,18 @@ public class UpgradeCanvas extends UIManager {
         // 타워 패널 텍스트 위치
         static final TextConfig TowerUpgradeCost = new TextConfig(380f, -100f, 0.8f);
         static final TextConfig TowerUpgradeLevel = new TextConfig(290f, 20f, 0.8f);
+        static final TextConfig TowerHPIncrease = new TextConfig(550f, -100f, 0.8f);
 
-        // 플레이어 업그레이드 패널 (통합)
+        // 플레이어 업그레이드 패널
         static final UIElementConfig PlayerPanel = new UIElementConfig(250f, -350f, 1f);
         static final UIElementConfig PlayerUpgradeBtn = new UIElementConfig(250f, -300f, 0.8f);
-        static final UIElementConfig PlayerToggleBtn = new UIElementConfig(270f, -465f, 0.8f);  // 작은 토글 버튼
+        static final UIElementConfig PlayerToggleBtn = new UIElementConfig(270f, -465f, 0.8f);
         static final UIElementConfig PlayerBackBtn = new UIElementConfig(350f, -500f, 0.5f);
 
-        // 플레이어 패널 텍스트 위치 (통합)
+        // 플레이어 패널 텍스트 위치
         static final TextConfig PlayerCost = new TextConfig(380f, -100f, 0.8f);
         static final TextConfig PlayerValue = new TextConfig(550f, -100f, 0.8f);
+        static final TextConfig PlayerLevel = new TextConfig(290f, 20f, 0.8f);
     }
 
     // -----------------------------
@@ -174,7 +179,7 @@ public class UpgradeCanvas extends UIManager {
     private BitmapFont font;
 
     private PanelState currentState = PanelState.MAIN;
-    private PlayerUpgradeType playerUpgradeType = PlayerUpgradeType.ATTACK;  // 현재 표시 중인 업그레이드 타입
+    private PlayerUpgradeType playerUpgradeType = PlayerUpgradeType.ATTACK;
 
     private MainPanel mainPanel;
     private TowerUpgradePanel towerPanel;
@@ -251,6 +256,7 @@ public class UpgradeCanvas extends UIManager {
 
         towerPanel.UpgradeCostPos = Layout.TowerUpgradeCost;
         towerPanel.UpgradeLevelPos = Layout.TowerUpgradeLevel;
+        towerPanel.HPIncreasePos = Layout.TowerHPIncrease;
 
         towerPanel.UpgradeButton = createButton("sprite/game/ui/upgrade/button.png", Layout.TowerUpgradeBtn);
         addHoverEffect(towerPanel.UpgradeButton);
@@ -281,6 +287,7 @@ public class UpgradeCanvas extends UIManager {
 
         playerPanel.costPos = Layout.PlayerCost;
         playerPanel.valuePos = Layout.PlayerValue;
+        playerPanel.levelPos = Layout.PlayerLevel;
 
         // 업그레이드 버튼
         playerPanel.upgradeButton = createButton("sprite/game/ui/upgrade/button.png", Layout.PlayerUpgradeBtn);
@@ -453,14 +460,30 @@ public class UpgradeCanvas extends UIManager {
     // 업그레이드 콜백들
     // -----------------------------
     private void onTowerUpgrade() {
-        ValueManager.upgradeTower();
+        boolean success = ValueManager.upgradeTower();
+        if (!success && ValueManager.isTowerMaxLevel()) {
+            System.out.println("타워가 최대 레벨입니다!");
+        } else if (!success) {
+            System.out.println("코인이 부족합니다!");
+        }
     }
 
     private void onPlayerUpgrade() {
+        boolean success;
         if (playerUpgradeType == PlayerUpgradeType.ATTACK) {
-            ValueManager.upgradePlayerAttack();
+            success = ValueManager.upgradePlayerAttack();
+            if (!success && ValueManager.isPlayerAttackMaxLevel()) {
+                System.out.println("공격력이 최대 레벨입니다!");
+            } else if (!success) {
+                System.out.println("코인이 부족합니다!");
+            }
         } else {
-            ValueManager.upgradePlayerReload();
+            success = ValueManager.upgradePlayerReload();
+            if (!success && ValueManager.isPlayerReloadMaxLevel()) {
+                System.out.println("재장전이 최대 레벨입니다!");
+            } else if (!success) {
+                System.out.println("코인이 부족합니다!");
+            }
         }
     }
 
@@ -496,13 +519,33 @@ public class UpgradeCanvas extends UIManager {
     private void renderTowerUpgradeText() {
         // 레벨 텍스트
         font.getData().setScale(towerPanel.UpgradeLevelPos.scale);
-        font.draw(batch, "Lv " + ValueManager.getTowerLevel(),
-            towerPanel.UpgradeLevelPos.x, towerPanel.UpgradeLevelPos.y);
+        String levelText = "Lv " + ValueManager.getTowerLevel() + "/" + ValueManager.getMaxTowerLevel();
+        font.draw(batch, levelText, towerPanel.UpgradeLevelPos.x, towerPanel.UpgradeLevelPos.y);
 
-        // 비용 텍스트
+        // 비용 텍스트 (최대 레벨이면 MAX 표시)
         font.getData().setScale(towerPanel.UpgradeCostPos.scale);
-        font.draw(batch, ""+ValueManager.getTowerUpgradeCost(),
-            towerPanel.UpgradeCostPos.x, towerPanel.UpgradeCostPos.y);
+        if (ValueManager.isTowerMaxLevel()) {
+            font.setColor(Color.GOLD);
+            font.draw(batch, "MAX", towerPanel.UpgradeCostPos.x, towerPanel.UpgradeCostPos.y);
+            font.setColor(Color.WHITE);
+        } else {
+            // 코인이 부족하면 빨간색으로 표시
+            if (ValueManager.getCoin() < ValueManager.getTowerUpgradeCost()) {
+                font.setColor(Color.RED);
+            }
+            font.draw(batch, "" + ValueManager.getTowerUpgradeCost(),
+                towerPanel.UpgradeCostPos.x, towerPanel.UpgradeCostPos.y);
+            font.setColor(Color.WHITE);
+        }
+
+        // 체력 증가량 표시 (최대 레벨이 아닐 때만)
+        if (!ValueManager.isTowerMaxLevel()) {
+            font.getData().setScale(towerPanel.HPIncreasePos.scale);
+            font.setColor(Color.GREEN);
+            font.draw(batch, "+HP " + ValueManager.getTowerHPIncrease(),
+                towerPanel.HPIncreasePos.x, towerPanel.HPIncreasePos.y);
+            font.setColor(Color.WHITE);
+        }
 
         // 스케일 원래대로
         font.getData().setScale(1f);
@@ -513,23 +556,59 @@ public class UpgradeCanvas extends UIManager {
     // -----------------------------
     private void renderPlayerUpgradeText() {
         if (playerUpgradeType == PlayerUpgradeType.ATTACK) {
-            // 공격력 업그레이드 정보
-            font.getData().setScale(playerPanel.costPos.scale);
-            font.draw(batch, "" + ValueManager.getPlayerAttackUpgradeCost(),
-                playerPanel.costPos.x, playerPanel.costPos.y);
+            // 공격력 레벨
+            font.getData().setScale(playerPanel.levelPos.scale);
+            String levelText = "Lv " + ValueManager.getPlayerAttackLevel() + "/" + ValueManager.getMaxPlayerAttackLevel();
+            font.draw(batch, levelText, playerPanel.levelPos.x, playerPanel.levelPos.y);
 
+            // 공격력 업그레이드 비용
+            font.getData().setScale(playerPanel.costPos.scale);
+            if (ValueManager.isPlayerAttackMaxLevel()) {
+                font.setColor(Color.GOLD);
+                font.draw(batch, "MAX", playerPanel.costPos.x, playerPanel.costPos.y);
+                font.setColor(Color.WHITE);
+            } else {
+                if (ValueManager.getCoin() < ValueManager.getPlayerAttackUpgradeCost()) {
+                    font.setColor(Color.RED);
+                }
+                font.draw(batch, "" + ValueManager.getPlayerAttackUpgradeCost(),
+                    playerPanel.costPos.x, playerPanel.costPos.y);
+                font.setColor(Color.WHITE);
+            }
+
+            // 증가량
             font.getData().setScale(playerPanel.valuePos.scale);
-            font.draw(batch, "+" + ValueManager.getPlayerAttackIncrease(),
-                playerPanel.valuePos.x, playerPanel.valuePos.y);
+            if (!ValueManager.isPlayerAttackMaxLevel()) {
+                font.draw(batch, "+" + ValueManager.getPlayerAttackIncrease(),
+                    playerPanel.valuePos.x, playerPanel.valuePos.y);
+            }
         } else {
-            // 재장전 업그레이드 정보
-            font.getData().setScale(playerPanel.costPos.scale);
-            font.draw(batch, "" + ValueManager.getPlayerReloadUpgradeCost(),
-                playerPanel.costPos.x, playerPanel.costPos.y);
+            // 재장전 레벨
+            font.getData().setScale(playerPanel.levelPos.scale);
+            String levelText = "Lv " + ValueManager.getPlayerReloadLevel() + "/" + ValueManager.getMaxPlayerReloadLevel();
+            font.draw(batch, levelText, playerPanel.levelPos.x, playerPanel.levelPos.y);
 
+            // 재장전 업그레이드 비용
+            font.getData().setScale(playerPanel.costPos.scale);
+            if (ValueManager.isPlayerReloadMaxLevel()) {
+                font.setColor(Color.GOLD);
+                font.draw(batch, "MAX", playerPanel.costPos.x, playerPanel.costPos.y);
+                font.setColor(Color.WHITE);
+            } else {
+                if (ValueManager.getCoin() < ValueManager.getPlayerReloadUpgradeCost()) {
+                    font.setColor(Color.RED);
+                }
+                font.draw(batch, "" + ValueManager.getPlayerReloadUpgradeCost(),
+                    playerPanel.costPos.x, playerPanel.costPos.y);
+                font.setColor(Color.WHITE);
+            }
+
+            // 감소량
             font.getData().setScale(playerPanel.valuePos.scale);
-            font.draw(batch, "-" + ValueManager.getPlayerReloadDecrease()+"초",
-                playerPanel.valuePos.x, playerPanel.valuePos.y);
+            if (!ValueManager.isPlayerReloadMaxLevel()) {
+                font.draw(batch, "-" + ValueManager.getPlayerReloadDecrease() + "초",
+                    playerPanel.valuePos.x, playerPanel.valuePos.y);
+            }
         }
 
         // 스케일 원래대로
