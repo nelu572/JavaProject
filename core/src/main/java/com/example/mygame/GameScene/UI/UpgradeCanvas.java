@@ -150,8 +150,8 @@ public class UpgradeCanvas extends UIManager {
 
         // 타워 업그레이드 패널
         static final UIElementConfig TowerPanel = new UIElementConfig(250f, -350f, 1f);
-        static final UIElementConfig TowerUpgradeBtn = new UIElementConfig(250f, -300f, 0.8f);
-        static final UIElementConfig TowerBackBtn = new UIElementConfig(250f, -500f, 0.5f);
+        static final UIElementConfig TowerUpgradeBtn = new UIElementConfig(315f, -315f, 0.9f);
+        static final UIElementConfig TowerBackBtn = new UIElementConfig(240f, -500f, 0.5f);
 
         // 타워 패널 텍스트 위치
         static final TextConfig TowerUpgradeCost = new TextConfig(380f, -100f, 0.8f);
@@ -160,9 +160,9 @@ public class UpgradeCanvas extends UIManager {
 
         // 플레이어 업그레이드 패널
         static final UIElementConfig PlayerPanel = new UIElementConfig(250f, -350f, 1f);
-        static final UIElementConfig PlayerUpgradeBtn = new UIElementConfig(250f, -300f, 0.8f);
-        static final UIElementConfig PlayerToggleBtn = new UIElementConfig(270f, -465f, 0.8f);
-        static final UIElementConfig PlayerBackBtn = new UIElementConfig(350f, -500f, 0.5f);
+        static final UIElementConfig PlayerUpgradeBtn = new UIElementConfig(315f, -315f, 0.9f);
+        static final UIElementConfig PlayerToggleBtn = new UIElementConfig(290f, -465f, 0.8f);
+        static final UIElementConfig PlayerBackBtn = new UIElementConfig(330f, -500f, 0.5f);
 
         // 플레이어 패널 텍스트 위치
         static final TextConfig PlayerCost = new TextConfig(380f, -100f, 0.8f);
@@ -218,7 +218,7 @@ public class UpgradeCanvas extends UIManager {
         mainPanel = new MainPanel();
         mainPanel.background = createImage("sprite/game/ui/upgrade/main_panel.png", Layout.PanelBG);
 
-        mainPanel.towerButton = createButton("sprite/game/ui/upgrade/button.png", Layout.MainTowerBtn);
+        mainPanel.towerButton = createButton("sprite/game/ui/upgrade/tower_upgrade.png", Layout.MainTowerBtn);
         addHoverEffect(mainPanel.towerButton);
         mainPanel.towerButton.addListener(new ClickListener() {
             @Override
@@ -227,7 +227,7 @@ public class UpgradeCanvas extends UIManager {
             }
         });
 
-        mainPanel.playerButton = createButton("sprite/game/ui/upgrade/button.png", Layout.MainPlayerBtn);
+        mainPanel.playerButton = createButton("sprite/game/ui/upgrade/player_button.png", Layout.MainPlayerBtn);
         addHoverEffect(mainPanel.playerButton);
         mainPanel.playerButton.addListener(new ClickListener() {
             @Override
@@ -236,7 +236,7 @@ public class UpgradeCanvas extends UIManager {
             }
         });
 
-        mainPanel.nextWaveButton = createButton("sprite/game/ui/upgrade/button.png", Layout.MainNextBtn);
+        mainPanel.nextWaveButton = createButton("sprite/game/ui/upgrade/next_button.png", Layout.MainNextBtn);
         addHoverEffect(mainPanel.nextWaveButton);
         mainPanel.nextWaveButton.addListener(new ClickListener() {
             @Override
@@ -258,7 +258,7 @@ public class UpgradeCanvas extends UIManager {
         towerPanel.UpgradeLevelPos = Layout.TowerUpgradeLevel;
         towerPanel.HPIncreasePos = Layout.TowerHPIncrease;
 
-        towerPanel.UpgradeButton = createButton("sprite/game/ui/upgrade/button.png", Layout.TowerUpgradeBtn);
+        towerPanel.UpgradeButton = createButton("sprite/game/ui/upgrade/upgrade.png", Layout.TowerUpgradeBtn);
         addHoverEffect(towerPanel.UpgradeButton);
         towerPanel.UpgradeButton.addListener(new ClickListener() {
             @Override
@@ -290,7 +290,7 @@ public class UpgradeCanvas extends UIManager {
         playerPanel.levelPos = Layout.PlayerLevel;
 
         // 업그레이드 버튼
-        playerPanel.upgradeButton = createButton("sprite/game/ui/upgrade/button.png", Layout.PlayerUpgradeBtn);
+        playerPanel.upgradeButton = createButton("sprite/game/ui/upgrade/upgrade.png", Layout.PlayerUpgradeBtn);
         addHoverEffect(playerPanel.upgradeButton);
         playerPanel.upgradeButton.addListener(new ClickListener() {
             @Override
@@ -461,29 +461,14 @@ public class UpgradeCanvas extends UIManager {
     // -----------------------------
     private void onTowerUpgrade() {
         boolean success = ValueManager.upgradeTower();
-        if (!success && ValueManager.isTowerMaxLevel()) {
-            System.out.println("타워가 최대 레벨입니다!");
-        } else if (!success) {
-            System.out.println("코인이 부족합니다!");
-        }
     }
 
     private void onPlayerUpgrade() {
         boolean success;
         if (playerUpgradeType == PlayerUpgradeType.ATTACK) {
             success = ValueManager.upgradePlayerAttack();
-            if (!success && ValueManager.isPlayerAttackMaxLevel()) {
-                System.out.println("공격력이 최대 레벨입니다!");
-            } else if (!success) {
-                System.out.println("코인이 부족합니다!");
-            }
         } else {
             success = ValueManager.upgradePlayerReload();
-            if (!success && ValueManager.isPlayerReloadMaxLevel()) {
-                System.out.println("재장전이 최대 레벨입니다!");
-            } else if (!success) {
-                System.out.println("코인이 부족합니다!");
-            }
         }
     }
 
@@ -603,10 +588,10 @@ public class UpgradeCanvas extends UIManager {
                 font.setColor(Color.WHITE);
             }
 
-            // 감소량
+            // 감소량 (소수점 둘째자리까지)
             font.getData().setScale(playerPanel.valuePos.scale);
             if (!ValueManager.isPlayerReloadMaxLevel()) {
-                font.draw(batch, "-" + ValueManager.getPlayerReloadDecrease() + "초",
+                font.draw(batch, String.format("-%.2f초", ValueManager.getPlayerReloadDecrease()),
                     playerPanel.valuePos.x, playerPanel.valuePos.y);
             }
         }

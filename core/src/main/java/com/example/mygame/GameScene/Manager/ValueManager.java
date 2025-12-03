@@ -25,19 +25,24 @@ public class ValueManager {
     private static final int MAX_PLAYER_ATTACK_LEVEL = 15;
     private static final int PLAYER_ATTACK_BASE_COST = 180;
 
-    // 발사 속도 관련
-    private static float playerFireRate;  // 발사 속도 (배율)
-    private static int playerFireRateLevel;
-    private static int playerFireRateUpgradeCost;
-    private static final int MAX_PLAYER_FIRE_RATE_LEVEL = 5;
-    private static final int PLAYER_FIRE_RATE_BASE_COST = 150;
+    // 재장전 시간 관련 (초 단위로 직접 관리)
+    private static float playerReloadTime;  // 재장전 시간 (초)
+    private static int playerReloadLevel;
+    private static int playerReloadUpgradeCost;
+    private static final int MAX_PLAYER_RELOAD_LEVEL = 4;  // 5 → 3으로 변경
+    private static final int PLAYER_RELOAD_BASE_COST = 150;
+    private static final float BASE_RELOAD_TIME = 1.0f;  // 기본 재장전 시간
 
     // 증가량
     private static final int PLAYER_ATTACK_BASE_INCREASE = 3;
+    private static final float RELOAD_TIME_BASE_DECREASE = 0.15f;  // 0.3초 → 0.15초로 변경
+
+    // 공통 증가 비율
+    private static final double UPGRADE_MULTIPLIER = 1.5;
 
     static {
-        MAX_COIN = 1000000;
-        coin = 9999;
+        MAX_COIN = 9999999;
+        coin = 9999999;
         wave = 1;
 
         // 타워 초기값
@@ -51,10 +56,10 @@ public class ValueManager {
         playerAttackLevel = 1;
         playerAttackUpgradeCost = PLAYER_ATTACK_BASE_COST;
 
-        // 발사 속도 초기값 (1.0배 = 기본 속도)
-        playerFireRate = 1.0f;
-        playerFireRateLevel = 1;
-        playerFireRateUpgradeCost = PLAYER_FIRE_RATE_BASE_COST;
+        // 재장전 시간 초기값
+        playerReloadTime = BASE_RELOAD_TIME;
+        playerReloadLevel = 1;
+        playerReloadUpgradeCost = PLAYER_RELOAD_BASE_COST;
     }
 
     public static void setCoin(int coin) {
@@ -136,7 +141,8 @@ public class ValueManager {
     }
 
     public static int getTowerHPIncrease() {
-        return TOWER_HP_BASE_INCREASE + (towerLevel * 2);
+        // 기본값 10에서 1.5배씩 증가
+        return (int)(TOWER_HP_BASE_INCREASE * Math.pow(UPGRADE_MULTIPLIER, towerLevel - 1));
     }
 
     public static boolean isTowerMaxLevel() {
@@ -159,7 +165,7 @@ public class ValueManager {
             }
 
             if(!isTowerMaxLevel()) {
-                towerUpgradeCost = (int)(TOWER_BASE_COST * Math.pow(1.5, towerLevel - 1));
+                towerUpgradeCost = (int)(TOWER_BASE_COST * Math.pow(UPGRADE_MULTIPLIER, towerLevel - 1));
             }
             return true;
         }
@@ -186,7 +192,8 @@ public class ValueManager {
     }
 
     public static int getPlayerAttackIncrease() {
-        return PLAYER_ATTACK_BASE_INCREASE + playerAttackLevel;
+        // 기본값 3에서 1.5배씩 증가
+        return (int)(PLAYER_ATTACK_BASE_INCREASE * Math.pow(UPGRADE_MULTIPLIER, playerAttackLevel - 1));
     }
 
     public static boolean isPlayerAttackMaxLevel() {
@@ -202,7 +209,7 @@ public class ValueManager {
             playerAttack += getPlayerAttackIncrease();
             playerAttackLevel++;
             if(!isPlayerAttackMaxLevel()) {
-                playerAttackUpgradeCost = (int)(PLAYER_ATTACK_BASE_COST * Math.pow(1.5, playerAttackLevel - 1));
+                playerAttackUpgradeCost = (int)(PLAYER_ATTACK_BASE_COST * Math.pow(UPGRADE_MULTIPLIER, playerAttackLevel - 1));
             }
             return true;
         }
@@ -210,110 +217,105 @@ public class ValueManager {
     }
 
     // -----------------------------
-    // 플레이어 발사 속도 관련 getter/setter
+    // 플레이어 재장전 시간 관련 getter/setter
     // -----------------------------
 
     /**
-     * 현재 발사 속도 배율 반환 (1.0 = 기본, 2.0 = 2배속)
+     * 현재 재장전 시간 반환 (초)
+     */
+    public static float getPlayerReloadTime() {
+        return playerReloadTime;
+    }
+
+    /**
+     * 발사 속도 배율 반환 (기본 시간 / 현재 시간)
+     * 게임 로직에서 사용
      */
     public static float getPlayerFireRate() {
-        return playerFireRate;
-    }
-
-    public static int getPlayerFireRateLevel() {
-        return playerFireRateLevel;
-    }
-
-    public static int getMaxPlayerFireRateLevel() {
-        return MAX_PLAYER_FIRE_RATE_LEVEL;
-    }
-
-    public static int getPlayerFireRateUpgradeCost() {
-        return playerFireRateUpgradeCost;
-    }
-
-    /**
-     * 다음 레벨의 발사 속도 증가량 반환
-     * 레벨에 따라 증가량이 커짐
-     */
-    public static float getPlayerFireRateIncrease() {
-        // Lv1->2: +0.5 (1.5배)
-        // Lv2->3: +0.6 (2.1배)
-        // Lv3->4: +0.7 (2.8배)
-        // Lv4->5: +0.8 (3.6배)
-        return 0.5f + (playerFireRateLevel * 0.1f);
-    }
-
-    /**
-     * 현재 발사 속도 증가량 (UI 표시용)
-     */
-    public static String getFireRateDisplay() {
-        return String.format("%.1fx", playerFireRate);
-    }
-
-    public static boolean isPlayerFireRateMaxLevel() {
-        return playerFireRateLevel >= MAX_PLAYER_FIRE_RATE_LEVEL;
-    }
-
-    /**
-     * 발사 속도 업그레이드
-     * 레벨이 올라갈수록 발사 속도가 빨라짐
-     */
-    public static boolean upgradePlayerFireRate() {
-        if(isPlayerFireRateMaxLevel()) {
-            return false;
-        }
-
-        if(spendCoin(playerFireRateUpgradeCost)) {
-            // 발사 속도 증가 (레벨에 따라 증가량이 커짐)
-            playerFireRate += getPlayerFireRateIncrease();
-            playerFireRateLevel++;
-
-            if(!isPlayerFireRateMaxLevel()) {
-                playerFireRateUpgradeCost = (int)(PLAYER_FIRE_RATE_BASE_COST * Math.pow(1.5, playerFireRateLevel - 1));
-            }
-            return true;
-        }
-        return false;
-    }
-
-    // 기존 메서드 호환성을 위한 메서드들 (UI 표시용)
-    public static float getPlayerReloadTime() {
-        // 기본 발사 간격(2.0초)을 발사 속도로 나눈 값
-        return 2.0f / playerFireRate;
+        return BASE_RELOAD_TIME / playerReloadTime;
     }
 
     public static int getPlayerReloadLevel() {
-        return playerFireRateLevel;
+        return playerReloadLevel;
     }
 
     public static int getMaxPlayerReloadLevel() {
-        return MAX_PLAYER_FIRE_RATE_LEVEL;
+        return MAX_PLAYER_RELOAD_LEVEL;
     }
 
     public static int getPlayerReloadUpgradeCost() {
-        return playerFireRateUpgradeCost;
+        return playerReloadUpgradeCost;
     }
 
     /**
-     * UI에 표시될 재장전 시간 감소량
-     * 현재 재장전 시간에서 다음 레벨 재장전 시간을 뺀 값
+     * 다음 레벨의 재장전 시간 감소량 반환
+     * 레벨이 올라갈수록 감소량도 증가 (0.3초 * 1.5^(level-1))
      */
     public static float getPlayerReloadDecrease() {
-        if(isPlayerFireRateMaxLevel()) {
+        if(isPlayerReloadMaxLevel()) {
             return 0f;
         }
-        float currentReloadTime = 2.0f / playerFireRate;
-        float nextFireRate = playerFireRate + getPlayerFireRateIncrease();
-        float nextReloadTime = 2.0f / nextFireRate;
-        return currentReloadTime - nextReloadTime;
+        return (float)(RELOAD_TIME_BASE_DECREASE * Math.pow(UPGRADE_MULTIPLIER, playerReloadLevel - 1));
     }
 
     public static boolean isPlayerReloadMaxLevel() {
-        return isPlayerFireRateMaxLevel();
+        return playerReloadLevel >= MAX_PLAYER_RELOAD_LEVEL;
     }
 
+    /**
+     * 재장전 시간 업그레이드
+     * 레벨이 올라갈수록 감소량도 증가
+     */
     public static boolean upgradePlayerReload() {
-        return upgradePlayerFireRate();
+        if(isPlayerReloadMaxLevel()) {
+            return false;
+        }
+
+        if(spendCoin(playerReloadUpgradeCost)) {
+            float decrease = getPlayerReloadDecrease();
+            playerReloadTime -= decrease;
+
+            // 최소 재장전 시간은 0.1초로 제한
+            if(playerReloadTime < 0.1f) {
+                playerReloadTime = 0.1f;
+            }
+
+            playerReloadLevel++;
+
+            if(!isPlayerReloadMaxLevel()) {
+                playerReloadUpgradeCost = (int)(PLAYER_RELOAD_BASE_COST * Math.pow(UPGRADE_MULTIPLIER, playerReloadLevel - 1));
+            }
+            return true;
+        }
+        return false;
+    }
+
+    // 기존 메서드 호환성을 위한 별칭
+    public static float getPlayerFireRateIncrease() {
+        return getPlayerReloadDecrease();
+    }
+
+    public static int getPlayerFireRateLevel() {
+        return playerReloadLevel;
+    }
+
+    public static int getMaxPlayerFireRateLevel() {
+        return MAX_PLAYER_RELOAD_LEVEL;
+    }
+
+    public static int getPlayerFireRateUpgradeCost() {
+        return playerReloadUpgradeCost;
+    }
+
+    public static String getFireRateDisplay() {
+        return String.format("%.2f초", playerReloadTime);
+    }
+
+    public static boolean isPlayerFireRateMaxLevel() {
+        return isPlayerReloadMaxLevel();
+    }
+
+    public static boolean upgradePlayerFireRate() {
+        return upgradePlayerReload();
     }
 }

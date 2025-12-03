@@ -20,9 +20,13 @@ public class GameUIResources {
         GameAssetManager.load("sprite/game/ui/upgrade/button.png", Texture.class);
         GameAssetManager.load("sprite/game/ui/upgrade/back_button.png", Texture.class);
         GameAssetManager.load("sprite/game/ui/upgrade/player_panel.png", Texture.class);
+        GameAssetManager.load("sprite/game/ui/upgrade/next_button.png", Texture.class);
+        GameAssetManager.load("sprite/game/ui/upgrade/player_button.png", Texture.class);
         GameAssetManager.load("sprite/game/ui/upgrade/tower_panel.png", Texture.class);
         GameAssetManager.load("sprite/game/ui/upgrade/panel.png", Texture.class);
         GameAssetManager.load("sprite/game/ui/upgrade/toggle_button.png", Texture.class);
+        GameAssetManager.load("sprite/game/ui/upgrade/tower_upgrade.png", Texture.class);
+        GameAssetManager.load("sprite/game/ui/upgrade/upgrade.png", Texture.class);
         GameAssetManager.load("sprite/game/ui/set/main_menu.png", Texture.class);
         GameAssetManager.load("sprite/game/ui/set/resume.png", Texture.class);
 
@@ -40,9 +44,13 @@ public class GameUIResources {
         unloadAsset("sprite/game/ui/upgrade/player_panel.png");
         unloadAsset("sprite/game/ui/upgrade/tower_panel.png");
         unloadAsset("sprite/game/ui/upgrade/panel.png");
-        unloadAsset("sprite/game/ui/upgrade/toggle_button.png");
+        unloadAsset("sprite/game/ui/upgrade/toggle_button.png");;
+        unloadAsset("sprite/game/ui/upgrade/tower_upgrade.png");
+        unloadAsset("sprite/game/ui/upgrade/upgrade.png");
         unloadAsset("sprite/game/ui/set/main_menu.png");
         unloadAsset("sprite/game/ui/set/resume.png");
+        unloadAsset("sprite/game/ui/upgrade/player_button.png");
+        unloadAsset("sprite/game/ui/upgrade/next_button.png");
     }
     private static void unloadAsset(String name) {
         if (GameAssetManager.isLoaded(name)) GameAssetManager.unload(name);

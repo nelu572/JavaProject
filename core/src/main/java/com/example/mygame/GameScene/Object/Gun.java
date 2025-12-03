@@ -36,8 +36,7 @@ public class Gun extends GameObject {
     private float muzzleY = 0.735f;
 
     private float recoilOffset = 0f;
-    private static final float BASE_RECOIL_RECOVERY = 20f;  // 기본 반동 회복 속도
-    private float currentRecoilRecovery = BASE_RECOIL_RECOVERY;
+    private static final float BASE_RECOIL_AMOUNT = 10f;  // 기본 반동 크기
 
     private ShapeRenderer shapeRenderer;
 
@@ -46,10 +45,8 @@ public class Gun extends GameObject {
 
     private ArrayList<Bullet> bullets = new ArrayList<>();
 
-    // 발사 속도 관련
-    private static final float BASE_FIRE_INTERVAL = 0.5f;  // 기본 발사 간격 (0.5초)
-    private float currentFireInterval = BASE_FIRE_INTERVAL;
-    private float fireTimer = 0f;  // 발사 타이머
+    // 발사 타이머
+    private float fireTimer = 0f;
 
     public Gun(Player player, CoverViewport viewport, World world) {
         super(GameSpriteResources.get("sprite/game/gun/M92.png", Texture.class));
@@ -176,23 +173,14 @@ public class Gun extends GameObject {
             }
         }
 
-        // ValueManager에서 발사 속도 가져오기
-        float fireRate = ValueManager.getPlayerFireRate();
+        // ⭐ ValueManager에서 현재 재장전 시간 가져오기
+        float currentReloadTime = ValueManager.getPlayerReloadTime();
 
-        // 발사 간격 계산 (발사 속도에 반비례)
-        currentFireInterval = BASE_FIRE_INTERVAL / fireRate;
-
-        // 반동 회복 속도도 발사 속도에 비례해서 빠르게
-        currentRecoilRecovery = BASE_RECOIL_RECOVERY * fireRate;
-
-        // 반동 회복 (발사 속도가 빠를수록 빠르게 회복)
+        // ⭐ 반동은 재장전 시간과 같은 속도로 회복
+        // 재장전 시간이 끝나면 반동도 완전히 회복됨
         if(recoilOffset > 0) {
-            recoilOffset = Math.max(0, recoilOffset - currentRecoilRecovery * delta);
-            if(recoilOffset <= 0) {
-                aiming = true;  // 반동이 완전히 회복되면 다시 조준 가능
-            } else {
-                aiming = false;  // 반동 중에는 조준 불가
-            }
+            float recoilDecreaseRate = BASE_RECOIL_AMOUNT / currentReloadTime;
+            recoilOffset = Math.max(0, recoilOffset - recoilDecreaseRate * delta);
         }
 
         // 발사 타이머 업데이트
@@ -200,7 +188,12 @@ public class Gun extends GameObject {
             fireTimer -= delta;
         }
 
-        // 마우스 버튼을 누르고 있고, 조준 중이며, 타이머가 끝났을 때 발사
+        // ⭐ 재장전 중에는 조준 불가
+        if(fireTimer > 0) {
+            aiming = false;
+        }
+
+        // 마우스 버튼을 누르고 있고, 조준 중이며, 타이머가 끝났을 때만 발사
         if(Gdx.input.isButtonPressed(Input.Buttons.LEFT) && aiming && fireTimer <= 0) {
             shoot();
         }
@@ -212,11 +205,10 @@ public class Gun extends GameObject {
         bullets.add(bullet);
 
         // 반동 추가
-        recoilOffset = 10f;
-        aiming = false;
+        recoilOffset = BASE_RECOIL_AMOUNT;
 
-        // 발사 타이머 리셋 (현재 발사 간격만큼)
-        fireTimer = currentFireInterval;
+        // ⭐ 발사 타이머를 ValueManager의 재장전 시간으로 설정
+        fireTimer = ValueManager.getPlayerReloadTime();
     }
 
     public Vector2 getMuzzleWorldPosition() {
