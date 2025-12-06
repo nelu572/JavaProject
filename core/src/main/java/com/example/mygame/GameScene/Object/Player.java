@@ -51,6 +51,7 @@ public class Player extends GameObject {
         fixtureDef.restitution = 0f;
 
         body.createFixture(fixtureDef);
+        body.setUserData(this);
         shape.dispose();
     }
 

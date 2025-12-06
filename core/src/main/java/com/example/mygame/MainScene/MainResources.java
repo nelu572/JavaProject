@@ -18,18 +18,6 @@ public class MainResources {
         MainAssetManager.load("sprite/main/button/Exit_bnt.png", Texture.class);
         MainAssetManager.load("sprite/main/button/Exit_bnt_hover.png", Texture.class);
     }
-
-    public static void unloadAssets() { // 추가
-        unloadAsset("sprite/main/img/BG.png");
-        unloadAsset("sprite/main/img/Title.png");
-        unloadAsset("sprite/main/button/Start_bnt.png");
-        unloadAsset("sprite/main/button/Start_bnt_hover.png");
-        unloadAsset("sprite/main/button/Exit_bnt.png");
-        unloadAsset("sprite/main/button/Exit_bnt_hover.png");
-    }
-    private static void unloadAsset(String name) {
-        if (MainAssetManager.isLoaded(name)) MainAssetManager.unload(name);
-    }
     public static void finishLoading() {
         MainAssetManager.finishLoading();
     }

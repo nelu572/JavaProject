@@ -17,6 +17,7 @@ public class Bullet extends GameObject {
     private Body body;
     private World world;
     private boolean alive;
+    private boolean hasHit = false; // 이미 충돌했는지 체크
     private float lifeTime;
     private float maxLifeTime = 3f;
     private float angle;
@@ -154,6 +155,10 @@ public class Bullet extends GameObject {
 
     @Override
     public void onHit() {
+        // 이미 충돌했으면 무시
+        if (hasHit) return;
+
+        hasHit = true;
         BulletManager.requestDestroy(this);
     }
 
@@ -171,6 +176,10 @@ public class Bullet extends GameObject {
 
     public boolean isAlive() {
         return alive;
+    }
+
+    public boolean hasHit() {
+        return hasHit;
     }
 
     public Body getBody() {

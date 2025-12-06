@@ -31,31 +31,6 @@ public class GameUIResources {
         GameAssetManager.load("sprite/game/ui/set/resume.png", Texture.class);
 
     }
-
-    public static void unloadAssets() { // 추가
-        unloadAsset("sprite/game/ui/img/BG.png");
-        unloadAsset("sprite/game/ui/tower_hp/background.png");
-        unloadAsset("sprite/game/ui/tower_hp/filled.png");
-        unloadAsset("sprite/game/ui/icon/coin.png");
-        unloadAsset("sprite/game/ui/panel/1.png");
-        unloadAsset("sprite/game/ui/upgrade/main_panel.png");
-        unloadAsset("sprite/game/ui/upgrade/button.png");
-        unloadAsset("sprite/game/ui/upgrade/back_button.png");
-        unloadAsset("sprite/game/ui/upgrade/player_panel.png");
-        unloadAsset("sprite/game/ui/upgrade/tower_panel.png");
-        unloadAsset("sprite/game/ui/upgrade/panel.png");
-        unloadAsset("sprite/game/ui/upgrade/toggle_button.png");;
-        unloadAsset("sprite/game/ui/upgrade/tower_upgrade.png");
-        unloadAsset("sprite/game/ui/upgrade/upgrade.png");
-        unloadAsset("sprite/game/ui/set/main_menu.png");
-        unloadAsset("sprite/game/ui/set/resume.png");
-        unloadAsset("sprite/game/ui/upgrade/player_button.png");
-        unloadAsset("sprite/game/ui/upgrade/next_button.png");
-    }
-    private static void unloadAsset(String name) {
-        if (GameAssetManager.isLoaded(name)) GameAssetManager.unload(name);
-    }
-
     public static void finishLoading() {
         GameAssetManager.finishLoading();
     }

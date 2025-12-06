@@ -29,20 +29,20 @@ public class ValueManager {
     private static float playerReloadTime;  // 재장전 시간 (초)
     private static int playerReloadLevel;
     private static int playerReloadUpgradeCost;
-    private static final int MAX_PLAYER_RELOAD_LEVEL = 4;  // 5 → 3으로 변경
-    private static final int PLAYER_RELOAD_BASE_COST = 150;
+    private static final int MAX_PLAYER_RELOAD_LEVEL = 4;
+    private static final int PLAYER_RELOAD_BASE_COST = 350;
     private static final float BASE_RELOAD_TIME = 1.0f;  // 기본 재장전 시간
 
     // 증가량
     private static final int PLAYER_ATTACK_BASE_INCREASE = 3;
-    private static final float RELOAD_TIME_BASE_DECREASE = 0.15f;  // 0.3초 → 0.15초로 변경
+    private static final float RELOAD_TIME_BASE_DECREASE = 0.15f;
 
     // 공통 증가 비율
     private static final double UPGRADE_MULTIPLIER = 1.5;
 
     static {
         MAX_COIN = 9999999;
-        coin = 9999999;
+        coin = 0;
         wave = 1;
 
         // 타워 초기값
@@ -60,6 +60,37 @@ public class ValueManager {
         playerReloadTime = BASE_RELOAD_TIME;
         playerReloadLevel = 1;
         playerReloadUpgradeCost = PLAYER_RELOAD_BASE_COST;
+    }
+
+    // -----------------------------
+    // 게임 오버 시 초기화
+    // -----------------------------
+    public static void resetGame() {
+        // 코인 초기화
+        coin = 0;
+        wave = 1;
+        isWave = false; // 업그레이드 화면으로 전환
+
+        // 타워 초기화
+        towerLevel = 1;
+        towerUpgradeCost = TOWER_BASE_COST;
+        MAX_TOWER_HP = 10;
+        tower_hp = MAX_TOWER_HP;
+
+        // 플레이어 공격력 초기화
+        playerAttack = 15;
+        playerAttackLevel = 1;
+        playerAttackUpgradeCost = PLAYER_ATTACK_BASE_COST;
+
+        // 재장전 시간 초기화
+        playerReloadTime = BASE_RELOAD_TIME;
+        playerReloadLevel = 1;
+        playerReloadUpgradeCost = PLAYER_RELOAD_BASE_COST;
+
+        // UI 업데이트
+        if(canvas != null) {
+            canvas.setHealth();
+        }
     }
 
     public static void setCoin(int coin) {
@@ -92,6 +123,7 @@ public class ValueManager {
             canvas.setHealth();
         }
     }
+
     public static void damageTower(int amount) {
         tower_hp -= amount;
 
@@ -101,6 +133,25 @@ public class ValueManager {
 
         if(canvas != null) {
             canvas.setHealth();
+        }
+
+        // HP가 0이 되면 게임 오버
+        if(tower_hp <= 0) {
+            onGameOver();
+        }
+    }
+
+    // 게임 오버 콜백
+    private static Runnable gameOverCallback = null;
+
+    public static void setGameOverCallback(Runnable callback) {
+        gameOverCallback = callback;
+    }
+
+    private static void onGameOver() {
+        // GameScreen에 게임 오버 알림
+        if(gameOverCallback != null) {
+            gameOverCallback.run();
         }
     }
 
@@ -131,11 +182,6 @@ public class ValueManager {
     public static int getWave() {
         return wave;
     }
-
-    public static void setCanvas(Canvas canvas) {
-        ValueManager.canvas = canvas;
-    }
-
     // -----------------------------
     // 타워 업그레이드 관련 getter/setter
     // -----------------------------
@@ -152,7 +198,6 @@ public class ValueManager {
     }
 
     public static int getTowerHPIncrease() {
-        // 기본값 10에서 1.5배씩 증가
         return (int)(TOWER_HP_BASE_INCREASE * Math.pow(UPGRADE_MULTIPLIER, towerLevel - 1));
     }
 
@@ -203,7 +248,6 @@ public class ValueManager {
     }
 
     public static int getPlayerAttackIncrease() {
-        // 기본값 3에서 1.5배씩 증가
         return (int)(PLAYER_ATTACK_BASE_INCREASE * Math.pow(UPGRADE_MULTIPLIER, playerAttackLevel - 1));
     }
 
@@ -230,20 +274,8 @@ public class ValueManager {
     // -----------------------------
     // 플레이어 재장전 시간 관련 getter/setter
     // -----------------------------
-
-    /**
-     * 현재 재장전 시간 반환 (초)
-     */
     public static float getPlayerReloadTime() {
         return playerReloadTime;
-    }
-
-    /**
-     * 발사 속도 배율 반환 (기본 시간 / 현재 시간)
-     * 게임 로직에서 사용
-     */
-    public static float getPlayerFireRate() {
-        return BASE_RELOAD_TIME / playerReloadTime;
     }
 
     public static int getPlayerReloadLevel() {
@@ -258,10 +290,6 @@ public class ValueManager {
         return playerReloadUpgradeCost;
     }
 
-    /**
-     * 다음 레벨의 재장전 시간 감소량 반환
-     * 레벨이 올라갈수록 감소량도 증가 (0.3초 * 1.5^(level-1))
-     */
     public static float getPlayerReloadDecrease() {
         if(isPlayerReloadMaxLevel()) {
             return 0f;
@@ -273,10 +301,6 @@ public class ValueManager {
         return playerReloadLevel >= MAX_PLAYER_RELOAD_LEVEL;
     }
 
-    /**
-     * 재장전 시간 업그레이드
-     * 레벨이 올라갈수록 감소량도 증가
-     */
     public static boolean upgradePlayerReload() {
         if(isPlayerReloadMaxLevel()) {
             return false;
@@ -286,7 +310,6 @@ public class ValueManager {
             float decrease = getPlayerReloadDecrease();
             playerReloadTime -= decrease;
 
-            // 최소 재장전 시간은 0.1초로 제한
             if(playerReloadTime < 0.1f) {
                 playerReloadTime = 0.1f;
             }
@@ -299,34 +322,5 @@ public class ValueManager {
             return true;
         }
         return false;
-    }
-
-    // 기존 메서드 호환성을 위한 별칭
-    public static float getPlayerFireRateIncrease() {
-        return getPlayerReloadDecrease();
-    }
-
-    public static int getPlayerFireRateLevel() {
-        return playerReloadLevel;
-    }
-
-    public static int getMaxPlayerFireRateLevel() {
-        return MAX_PLAYER_RELOAD_LEVEL;
-    }
-
-    public static int getPlayerFireRateUpgradeCost() {
-        return playerReloadUpgradeCost;
-    }
-
-    public static String getFireRateDisplay() {
-        return String.format("%.2f초", playerReloadTime);
-    }
-
-    public static boolean isPlayerFireRateMaxLevel() {
-        return isPlayerReloadMaxLevel();
-    }
-
-    public static boolean upgradePlayerFireRate() {
-        return upgradePlayerReload();
     }
 }

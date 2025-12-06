@@ -31,15 +31,19 @@ public class Slime extends GameObject {
     private boolean isHitting = false;
     private ArrayList<Texture> hurt_textures = new ArrayList<>();
     private int hurt_index = 0;
-    private static int MAX_HP = 40;
+    private static int MAX_HP = 100;
     private int hp;
+
+    // 죽음 애니메이션
+    private float deathTimer = 0f;
+    private static final float DEATH_DELAY = 0.5f; // 죽음 후 사라지는 시간
 
     // 공격 관련
     private boolean isAttacking = false;
     private boolean attackForward = false;
     private boolean attackBackward = false;
 
-    private static int Damage = 5;
+    private static int Damage = 3;
 
     private float attackTimer = 0f;
     private float attackForwardTime = 0.15f;
@@ -48,7 +52,7 @@ public class Slime extends GameObject {
     private Vector2 attackStartPosition = new Vector2();
     private float attackDistance = 1.5f;
 
-    private static final float attack_delay = 1.0f;
+    private static final float attack_delay = 0.75f;
     private float attack_cooldown = 0f;
 
     private boolean needsPositionReset = false;
@@ -57,6 +61,7 @@ public class Slime extends GameObject {
     // 사망 관련
     private boolean isDead = false;
     private boolean pendingRemove = false;
+    private static final int COIN = 200;
 
     // 충돌 필터
     public static final short CATEGORY_MONSTER = 0x0002;
@@ -75,7 +80,7 @@ public class Slime extends GameObject {
         }
         idle_texture = getTexture();
 
-        setPosition(0, 0);
+        setPosition(800,  -300);
         setSize(idle_texture.getWidth() * 3.5f, idle_texture.getHeight() * 4f);
         jump_cooldown = jump_delay;
         hp = MAX_HP;
@@ -128,13 +133,24 @@ public class Slime extends GameObject {
 
         // 사망 처리된 바디 제거
         if (pendingRemove) {
-            world.destroyBody(body);
+            if (!world.isLocked()) {
+                world.destroyBody(body);
+            }
             pendingRemove = false;
             return;
         }
 
-        // 죽어있으면 아무것도 하지 않음
-        if (isDead) return;
+        // 죽어있으면 타이머만 업데이트하고 렌더링만 함
+        if (isDead) {
+            deathTimer += delta;
+            // 위치 동기화는 계속 (밀리는 모션 표현)
+            Vector2 position = body.getPosition();
+            setPosition(
+                position.x * PPM - getWidth() / 2f,
+                position.y * PPM - getHeight() / 2f
+            );
+            return;
+        }
 
         if (needsPositionReset) {
             body.setTransform(targetResetPosition.x, targetResetPosition.y, body.getAngle());
@@ -330,12 +346,20 @@ public class Slime extends GameObject {
     @Override
     public void onHit() {
         if (isDead || isHitting) return;
+
+        int previousHp = hp;
         hp -= ValueManager.getPlayerAttack();
 
         if (hp <= 0) {
+            hp = 0;
+
+            isHitting = true;
+            hurt_index = 0;
+
             die();
             return;
         }
+
         if (isAttacking) {
             isAttacking = false;
             attackForward = false;
@@ -343,8 +367,8 @@ public class Slime extends GameObject {
             attackTimer = 0f;
             attack_cooldown = attack_delay;
         }
-
         body.setLinearVelocity(new Vector2(2.75f, -0.3f));
+
         isHitting = true;
         hurt_index = 0;
     }
@@ -354,15 +378,21 @@ public class Slime extends GameObject {
     // -----------------------
     private void die() {
         isDead = true;
-        pendingRemove = true;
+        deathTimer = 0f;
+        pendingRemove = true; // 바디 즉시 제거
+        ValueManager.addCoin(COIN);
     }
-
+    public boolean isDead() {
+        return isDead;
+    }
     // -----------------------
     // 렌더링
     // -----------------------
     @Override
     public void render(SpriteBatch batch) {
-        if (isDead) return;
+        // 사망 후 일정 시간 지나면 렌더링 안함
+        if (isDead && deathTimer >= DEATH_DELAY) return;
+
         batch.draw(
             getTexture(),
             getX(),

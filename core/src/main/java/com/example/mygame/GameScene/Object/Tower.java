@@ -8,11 +8,6 @@ import com.example.mygame.GameScene.Resorces.GameSpriteResources;
 import java.util.ArrayList;
 
 public class Tower extends GameObject {
-    private int level;
-    private static final int MAX_HP = 100;
-    private int hp;
-    private final ArrayList<Texture> textures = new ArrayList<>();
-
     // Box2D
     private Body body;
     private static final float PPM = 100f;
@@ -22,12 +17,6 @@ public class Tower extends GameObject {
 
         super.setSize(32 * 7, 24 * 7);
         super.setPosition(-940, -483);
-
-        textures.add(GameSpriteResources.get("sprite/game/tower/LV1.png", Texture.class));
-        textures.add(GameSpriteResources.get("sprite/game/tower/LV2.png", Texture.class));
-
-        this.level = level;
-        this.hp = MAX_HP;
 
         // Box2D Body 생성
         createBody(world);
@@ -63,33 +52,6 @@ public class Tower extends GameObject {
 
         body.createFixture(fixtureDef);
         shape.dispose();
-    }
-
-    public void takeDamage(int damage) {
-        if (isDead()) {
-            return;
-        }
-        hp -= damage;
-        if (isDead()) {
-            hp = 0;
-        }
-    }
-
-    private boolean isDead() {
-        return hp <= 0;
-    }
-
-    public int getHp() {
-        return hp;
-    }
-
-    public void setTowerLevel(int level) {
-        this.level = level;
-        super.setTexture(textures.get(level));
-    }
-
-    public int getTowerLevel() {
-        return level;
     }
 
     public Body getBody() {

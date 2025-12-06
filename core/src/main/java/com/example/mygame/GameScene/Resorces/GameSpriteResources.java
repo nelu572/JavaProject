@@ -20,19 +20,6 @@ public class GameSpriteResources {
         GameAssetManager.load("sprite/game/gun/M92.png", Texture.class);
     }
 
-    public static void unloadAssets() {
-        unloadAsset("sprite/game/bullet/1.png");
-        unloadAsset("sprite/game/img/ground.png");
-        unloadAsset("sprite/game/tower/LV1.png");
-        unloadAsset("sprite/game/tower/LV2.png");
-        unloadAsset("sprite/game/player/idle1.png");
-        unloadAsset("sprite/game/player/idle2.png");
-        unloadAsset("sprite/game/gun/M92.png");
-    }
-    private static void unloadAsset(String name) {
-        if (GameAssetManager.isLoaded(name)) GameAssetManager.unload(name);
-    }
-
     public static void finishLoading() {
         GameAssetManager.finishLoading();
     }

@@ -108,6 +108,27 @@ public class GameScreen implements Screen {
         ground = new Ground(world);
         tower = new Tower(world, 1);
         player = new Player(world, viewport);
+
+        // 게임 오버 콜백 설정
+        ValueManager.setGameOverCallback(() -> {
+            waveManager.reset();
+            ValueManager.setisWave(false);
+            Gdx.input.setInputProcessor(upgradeCanvas.getStage());
+            wasWaveActive = false;
+        });
+
+        // 메인 화면에서 넘어올 때 게임 초기화
+        resetGameState();
+    }
+
+    // 게임 상태 초기화 (메인 화면에서 넘어올 때)
+    private void resetGameState() {
+        // 웨이브 매니저 초기화
+        waveManager.reset();
+        ValueManager.resetGame();
+        // 입력 프로세서 업그레이드 화면으로
+        Gdx.input.setInputProcessor(upgradeCanvas.getStage());
+        wasWaveActive = false;
     }
 
     @Override
@@ -120,6 +141,9 @@ public class GameScreen implements Screen {
         // ESC 메뉴가 열려있지 않을 때만 물리 시뮬레이션 실행
         if (!escMenuCanvas.isVisible()) {
             world.step(1 / 60f, 6, 2);
+
+            // world.step() 완료 후 Rock 충돌 처리 실행
+            MyContactListener.processPendingRockCollisions();
         }
 
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) && !escMenuCanvas.isVisible()) {
