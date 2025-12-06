@@ -47,7 +47,7 @@ public class Main extends Game {
             "ui/Galmuri9.ttf",      // TTF 경로
             64,                     // 글자 크기
             Color.WHITE,            // 글자 색상
-            "현재레벨코인비용초" // 추가 한글 문자
+            "공격력 체력 장전 초 속도" // 추가 한글 문자
         );
     }
     public void ChangeScene(String Scene) {

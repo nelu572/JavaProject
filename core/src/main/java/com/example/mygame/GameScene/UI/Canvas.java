@@ -109,7 +109,6 @@ public class Canvas extends UIManager {
     // 체력바 UI 구조체
     // -----------------------------
     private static class HealthBarUI {
-        Slider slider;
         HealthBarConfig config;
     }
 
@@ -147,6 +146,17 @@ public class Canvas extends UIManager {
     private HealthBarUI healthBarUI;
 
     // -----------------------------
+    // HP Bar Image 방식 필드
+    // -----------------------------
+    private Texture hpBgTexture;
+    private Texture hpFillTexture;
+    private TextureRegion hpFillRegion;
+
+    private float hpX, hpY;
+    private float hpWidth, hpHeight;
+    private float hpPercent;
+
+    // -----------------------------
     // Constructor
     // -----------------------------
     public Canvas(CoverViewport viewport, Batch batch) {
@@ -161,11 +171,10 @@ public class Canvas extends UIManager {
         initWaveUI();
         initHealthBarUI();
 
-        // Stage에 추가
+        // Stage actor 추가
         stage.addActor(coinUI.panel);
         stage.addActor(coinUI.icon);
         stage.addActor(waveUI.panel);
-        stage.addActor(healthBarUI.slider);
     }
 
     // -----------------------------
@@ -188,31 +197,24 @@ public class Canvas extends UIManager {
     }
 
     // -----------------------------
-    // 체력바 UI 초기화
+    // 체력바 UI 초기화 (이미지 방식)
     // -----------------------------
     private void initHealthBarUI() {
         healthBarUI = new HealthBarUI();
         healthBarUI.config = Layout.HealthBar;
 
-        Texture sliderBg = GameUIResources.get("sprite/game/ui/tower_hp/background.png", Texture.class);
-        Texture sliderFill = GameUIResources.get("sprite/game/ui/tower_hp/filled.png", Texture.class);
+        hpBgTexture = GameUIResources.get("sprite/game/ui/tower_hp/background.png", Texture.class);
+        hpFillTexture = GameUIResources.get("sprite/game/ui/tower_hp/filled.png", Texture.class);
 
-        TextureRegionDrawable bgDrawable = new TextureRegionDrawable(new TextureRegion(sliderBg));
-        TextureRegionDrawable fillDrawable = new TextureRegionDrawable(new TextureRegion(sliderFill));
+        hpFillRegion = new TextureRegion(hpFillTexture);
 
-        bgDrawable.setMinHeight(healthBarUI.config.height);
-        fillDrawable.setMinHeight(healthBarUI.config.height);
 
-        Slider.SliderStyle sliderStyle = new Slider.SliderStyle();
-        sliderStyle.background = bgDrawable;
-        sliderStyle.knob = null;
-        sliderStyle.knobBefore = fillDrawable;
+        hpX = healthBarUI.config.x;
+        hpY = healthBarUI.config.y;
+        hpWidth = healthBarUI.config.width;
+        hpHeight = healthBarUI.config.height;
 
-        healthBarUI.slider = new Slider(0, ValueManager.getMaxTowerHp(), 1, false, sliderStyle);
-        healthBarUI.slider.setValue(ValueManager.getTower_hp());
-        healthBarUI.slider.setDisabled(true);
-        healthBarUI.slider.setPosition(healthBarUI.config.x, healthBarUI.config.y);
-        healthBarUI.slider.setSize(healthBarUI.config.width, healthBarUI.config.height);
+        updateHealthBarValues();
     }
 
     // -----------------------------
@@ -237,9 +239,22 @@ public class Canvas extends UIManager {
     }
 
     // -----------------------------
+    // Health 값 → 비율 갱신
+    // -----------------------------
+    private void updateHealthBarValues() {
+        float hp = ValueManager.getTower_hp();
+        float max = ValueManager.getMaxTowerHp();
+
+        hpPercent = Math.max(0f, Math.min(1f, hp / max));
+    }
+
+    // -----------------------------
     // Render
     // -----------------------------
     public void render() {
+
+        updateHealthBarValues();
+
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 
@@ -250,6 +265,7 @@ public class Canvas extends UIManager {
 
         drawWaveText();
         drawCoinText();
+        drawHealthBar();
         drawHealthText();
 
         batch.end();
@@ -280,6 +296,24 @@ public class Canvas extends UIManager {
     }
 
     // -----------------------------
+    // Draw HP Bar (Image 방식)
+    // -----------------------------
+    private void drawHealthBar() {
+        // 배경 출력
+        batch.draw(hpBgTexture, hpX, hpY, hpWidth, hpHeight);
+
+        float srcWidth = hpFillTexture.getWidth() * hpPercent;
+        if (srcWidth < 1) return;
+
+        hpFillRegion.setRegion(0, 0, (int) srcWidth, hpFillTexture.getHeight());
+
+        float drawWidth = hpWidth * hpPercent * 0.98f;
+        float drawHeight = hpHeight;
+
+        batch.draw(hpFillRegion, hpX+4*3, hpY, drawWidth, drawHeight);
+    }
+
+    // -----------------------------
     // Draw Health Text
     // -----------------------------
     private void drawHealthText() {
@@ -293,14 +327,11 @@ public class Canvas extends UIManager {
         float rightTextWidth = glyphLayout.width;
 
         HealthBarConfig bar = healthBarUI.config;
-        float barX = healthBarUI.slider.getX();
-        float barY = healthBarUI.slider.getY() + 4;
+        float leftTextX = hpX + bar.textLeftPadding;
+        float leftTextY = hpY + bar.height / 2 + leftTextHeight / 2;
 
-        float leftTextX = barX + bar.textLeftPadding;
-        float leftTextY = barY + bar.height / 2 + leftTextHeight / 2;
-
-        float rightTextX = barX + bar.width - rightTextWidth - bar.textRightPadding;
-        float rightTextY = barY + bar.height / 2 + leftTextHeight / 2;
+        float rightTextX = hpX + bar.width - rightTextWidth - bar.textRightPadding;
+        float rightTextY = leftTextY;
 
         font.draw(batch, leftText, leftTextX, leftTextY);
         font.draw(batch, rightText, rightTextX, rightTextY);
@@ -310,10 +341,7 @@ public class Canvas extends UIManager {
     // Set Health
     // -----------------------------
     public void setHealth() {
-        // 최대값 업데이트 (업그레이드로 최대 HP 증가 시 슬라이더 범위도 확장)
-        healthBarUI.slider.setRange(0, ValueManager.getMaxTowerHp());
-        // 현재값 업데이트
-        healthBarUI.slider.setValue(ValueManager.getTower_hp());
+        updateHealthBarValues();
     }
 
     // -----------------------------

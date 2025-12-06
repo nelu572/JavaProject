@@ -22,7 +22,7 @@ public class ValueManager {
     private static int playerAttack;
     private static int playerAttackLevel;
     private static int playerAttackUpgradeCost;
-    private static final int MAX_PLAYER_ATTACK_LEVEL = 15;
+    private static final int MAX_PLAYER_ATTACK_LEVEL = 10;
     private static final int PLAYER_ATTACK_BASE_COST = 180;
 
     // 재장전 시간 관련 (초 단위로 직접 관리)
@@ -88,6 +88,17 @@ public class ValueManager {
 
     public static void setTower_hp(int tower_hp) {
         ValueManager.tower_hp = tower_hp;
+        if(canvas != null) {
+            canvas.setHealth();
+        }
+    }
+    public static void damageTower(int amount) {
+        tower_hp -= amount;
+
+        if(tower_hp < 0) {
+            tower_hp = 0;
+        }
+
         if(canvas != null) {
             canvas.setHealth();
         }

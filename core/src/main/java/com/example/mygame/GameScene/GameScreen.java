@@ -94,33 +94,20 @@ public class GameScreen implements Screen {
         gameUI = new GameUI(viewport);
         gameUI.drawBackground(backstage);
 
+        // 초기 상태는 업그레이드 모드
+        waveManager = new WaveManager(world);
+
         canvas = new Canvas(viewport, batch);
-        upgradeCanvas = new UpgradeCanvas(viewport, batch);
+        upgradeCanvas = new UpgradeCanvas(viewport, batch, waveManager);
         escMenuCanvas = new ESCMenuCanvas(viewport, batch, main);
 
-        // 초기 상태는 업그레이드 모드
         Gdx.input.setInputProcessor(upgradeCanvas.getStage());
         wasWaveActive = false;
 
-        waveManager = new WaveManager(world);
         // GameObject들을 Box2D Body와 함께 생성
         ground = new Ground(world);
         tower = new Tower(world, 1);
         player = new Player(world, viewport);
-    }
-
-    // -----------------------------
-    // 메인 메뉴로 이동
-    // -----------------------------
-    private void goToMainMenu() {
-        // 리소스 정리
-        dispose();
-
-        // 메인 메뉴로 이동 (Main 클래스에 메인 메뉴 Screen이 있다고 가정)
-        // main.setScreen(main.getMainMenuScreen());
-
-        // 또는 게임 종료
-        Gdx.app.exit();
     }
 
     @Override
@@ -130,19 +117,20 @@ public class GameScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        world.step(1/60f, 6, 2);
+        // ESC 메뉴가 열려있지 않을 때만 물리 시뮬레이션 실행
+        if (!escMenuCanvas.isVisible()) {
+            world.step(1 / 60f, 6, 2);
+        }
 
-        // ESC 메뉴가 보이지 않을 때만 ESC 키 처리
         if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE) && !escMenuCanvas.isVisible()) {
             escMenuCanvas.toggle();
         }
 
         update(delta);
-
         rendering();
     }
 
-    private void update(float delta){
+    private void update(float delta) {
         BulletManager.processDestroyQueue();
 
         boolean isWaveActive = ValueManager.getisWave();
@@ -153,6 +141,7 @@ public class GameScreen implements Screen {
             if (isWaveActive != wasWaveActive) {
                 if (isWaveActive) {
                     // 웨이브 시작: 플레이어 입력으로 전환
+                    waveManager.update(delta);
                     Gdx.input.setInputProcessor(backstage);
                 } else {
                     // 웨이브 종료: 업그레이드 UI 입력으로 전환
@@ -161,7 +150,7 @@ public class GameScreen implements Screen {
                 wasWaveActive = isWaveActive;
             }
 
-            if(isWaveActive) {
+            if (isWaveActive) {
                 player.update(delta);
                 waveManager.update(delta);
             }
@@ -172,14 +161,14 @@ public class GameScreen implements Screen {
         backstage.draw();
     }
 
-    private void rendering(){
+    private void rendering() {
         // 그 다음 게임 오브젝트들 그리기
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
         ground.render(batch);
         tower.render(batch);
         player.render(batch);
-        if(ValueManager.getisWave()) {
+        if (ValueManager.getisWave()) {
             waveManager.render(batch);
         }
         batch.end();
@@ -187,7 +176,7 @@ public class GameScreen implements Screen {
         // HP바 먼저 그리기 (Stage가 자체 batch 관리)
         canvas.render();
 
-        if(!ValueManager.getisWave()) {
+        if (!ValueManager.getisWave()) {
             upgradeCanvas.render();
         }
 
@@ -201,7 +190,7 @@ public class GameScreen implements Screen {
         batch.end();
 
         // 디버그 렌더링
-        // debugRenderer.render(world, viewport.getCamera().combined.cpy().scl(PPM));
+        debugRenderer.render(world, viewport.getCamera().combined.cpy().scl(PPM));
     }
 
     @Override
@@ -210,7 +199,8 @@ public class GameScreen implements Screen {
     }
 
     @Override
-    public void pause() {}
+    public void pause() {
+    }
 
     @Override
     public void resume() {
@@ -218,7 +208,8 @@ public class GameScreen implements Screen {
     }
 
     @Override
-    public void hide() {}
+    public void hide() {
+    }
 
     @Override
     public void dispose() {

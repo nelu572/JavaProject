@@ -16,7 +16,7 @@ public class Ground extends GameObject {
         // 바닥 위치 및 크기 설정
         Texture groundTexture = getTexture();
         super.setSize(groundTexture.getWidth(), groundTexture.getHeight());
-        super.setPosition(-2560/2f, -1440/2f);
+        super.setPosition(-2560/2f, -1440/2f    );
 
         // Box2D Body 생성
         createBody();

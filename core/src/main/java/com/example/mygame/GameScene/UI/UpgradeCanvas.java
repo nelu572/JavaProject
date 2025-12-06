@@ -17,6 +17,7 @@ import com.example.mygame.EveryScene.CoverViewport;
 import com.example.mygame.EveryScene.FontManager;
 import com.example.mygame.EveryScene.UIManager;
 import com.example.mygame.GameScene.Manager.ValueManager;
+import com.example.mygame.GameScene.Manager.WaveManager;
 import com.example.mygame.GameScene.Resorces.GameUIResources;
 
 public class UpgradeCanvas extends UIManager {
@@ -99,6 +100,7 @@ public class UpgradeCanvas extends UIManager {
         ImageButton backButton;
 
         // 텍스트 위치
+        TextConfig titlePos;
         TextConfig UpgradeCostPos;
         TextConfig UpgradeLevelPos;
         TextConfig HPIncreasePos;
@@ -115,6 +117,7 @@ public class UpgradeCanvas extends UIManager {
         ImageButton backButton;
 
         // 텍스트 위치
+        TextConfig titlePos;
         TextConfig costPos;
         TextConfig valuePos;
         TextConfig levelPos;
@@ -149,6 +152,7 @@ public class UpgradeCanvas extends UIManager {
         static final UIElementConfig MainNextBtn = new UIElementConfig(250f, -400f, 1f);
 
         // 타워 업그레이드 패널
+        static final TextConfig TowerTitle = new TextConfig(630f, 20f, 0.8f);
         static final UIElementConfig TowerPanel = new UIElementConfig(250f, -350f, 1f);
         static final UIElementConfig TowerUpgradeBtn = new UIElementConfig(315f, -315f, 0.9f);
         static final UIElementConfig TowerBackBtn = new UIElementConfig(240f, -500f, 0.5f);
@@ -159,6 +163,7 @@ public class UpgradeCanvas extends UIManager {
         static final TextConfig TowerHPIncrease = new TextConfig(550f, -100f, 0.8f);
 
         // 플레이어 업그레이드 패널
+        static final TextConfig PlayerTitle = new TextConfig(730f, 20f, 0.8f);
         static final UIElementConfig PlayerPanel = new UIElementConfig(250f, -350f, 1f);
         static final UIElementConfig PlayerUpgradeBtn = new UIElementConfig(315f, -315f, 0.9f);
         static final UIElementConfig PlayerToggleBtn = new UIElementConfig(290f, -465f, 0.8f);
@@ -185,6 +190,8 @@ public class UpgradeCanvas extends UIManager {
     private TowerUpgradePanel towerPanel;
     private PlayerUpgradePanel playerPanel;
 
+    private WaveManager waveManager;
+
     // -----------------------------
     // Getter for Stage (InputProcessor)
     // -----------------------------
@@ -195,13 +202,13 @@ public class UpgradeCanvas extends UIManager {
     // -----------------------------
     // Constructor
     // -----------------------------
-    public UpgradeCanvas(CoverViewport viewport, Batch batch) {
+    public UpgradeCanvas(CoverViewport viewport, Batch batch, WaveManager waveManager) {
         this.batch = batch;
         this.stage = new Stage(viewport);
         this.stage.getCamera().position.set(0, 0, 0);
         this.stage.getCamera().update();
         this.glyphLayout = new GlyphLayout();
-
+        this.waveManager = waveManager;
         // 패널들 초기화
         initMainPanel();
         initTowerUpgradePanel();
@@ -242,6 +249,7 @@ public class UpgradeCanvas extends UIManager {
             @Override
             public void clicked(InputEvent event, float x, float y) {
                 ValueManager.setisWave(true);
+                waveManager.WaveStart(ValueManager.getWave());
             }
         });
     }
@@ -254,6 +262,7 @@ public class UpgradeCanvas extends UIManager {
         towerPanel.background = createImage("sprite/game/ui/upgrade/tower_panel.png", Layout.PanelBG);
         towerPanel.panel = createImage("sprite/game/ui/upgrade/panel.png", Layout.TowerPanel);
 
+        towerPanel.titlePos = Layout.TowerTitle;
         towerPanel.UpgradeCostPos = Layout.TowerUpgradeCost;
         towerPanel.UpgradeLevelPos = Layout.TowerUpgradeLevel;
         towerPanel.HPIncreasePos = Layout.TowerHPIncrease;
@@ -285,6 +294,7 @@ public class UpgradeCanvas extends UIManager {
         playerPanel.background = createImage("sprite/game/ui/upgrade/player_panel.png", Layout.PanelBG);
         playerPanel.panel = createImage("sprite/game/ui/upgrade/panel.png", Layout.PlayerPanel);
 
+        playerPanel.titlePos = Layout.PlayerTitle;
         playerPanel.costPos = Layout.PlayerCost;
         playerPanel.valuePos = Layout.PlayerValue;
         playerPanel.levelPos = Layout.PlayerLevel;
@@ -485,17 +495,46 @@ public class UpgradeCanvas extends UIManager {
         }
 
         switch (currentState) {
-            case MAIN:
-                break;
             case TOWER_UPGRADE:
+                renderTowerTitle();
                 renderTowerUpgradeText();
                 break;
             case PLAYER_UPGRADE:
+                renderPlayerTitle();
                 renderPlayerUpgradeText();
                 break;
         }
 
         batch.end();
+    }
+
+    // -----------------------------
+    // 타워 패널 타이틀 렌더링
+    // -----------------------------
+    private void renderTowerTitle() {
+        font.getData().setScale(towerPanel.titlePos.scale);
+        font.setColor(Color.WHITE);
+        font.draw(batch, "체력", towerPanel.titlePos.x, towerPanel.titlePos.y);
+        font.getData().setScale(1f);
+    }
+
+    // -----------------------------
+    // 플레이어 패널 타이틀 렌더링
+    // -----------------------------
+    private void renderPlayerTitle() {
+        font.getData().setScale(playerPanel.titlePos.scale);
+        font.setColor(Color.WHITE);
+        String title = (playerUpgradeType == PlayerUpgradeType.ATTACK)
+            ? "공격력"
+            : "장전 속도";
+
+        // 텍스트 너비 계산해서 오른쪽 정렬
+        glyphLayout.setText(font, title);
+        float textWidth = glyphLayout.width;
+        float alignedX = playerPanel.titlePos.x - textWidth;
+
+        font.draw(batch, title, alignedX, playerPanel.titlePos.y);
+        font.getData().setScale(1f);
     }
 
     // -----------------------------
