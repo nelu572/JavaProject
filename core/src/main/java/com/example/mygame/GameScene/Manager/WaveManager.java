@@ -4,6 +4,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.physics.box2d.World;
 import com.example.mygame.GameScene.Object.Monster.Slime;
 import com.example.mygame.GameScene.Object.Monster.Zombie;
+import com.example.mygame.GameScene.Object.Monster.Bat;
 import com.example.mygame.GameScene.Object.Monster.Cyclops;
 
 import java.util.ArrayList;
@@ -15,98 +16,100 @@ public class WaveManager {
     private World world;
     private ArrayList<Slime> slimes = new ArrayList<>();
     private ArrayList<Zombie> zombies = new ArrayList<>();
+    private ArrayList<Bat> bats = new ArrayList<>();
     private ArrayList<Cyclops> cyclopses = new ArrayList<>();
 
-    // 스폰 데이터: {시간, 슬라임 수, 좀비 수, 사일롭스 수}
+    // 스폰 데이터: {시간, 슬라임 수, 좀비 수, 박쥐 수, 사일롭스 수}
 
     // Wave 1: 좀비만 등장 (입문)
     private float[][] wave1_spawns = {
-        {1f, 0, 1, 0},      // 1초: 좀비 1
-        {3f, 0, 1, 0},      // 3초: 좀비 1
-        {5f, 0, 1, 0},      // 5초: 좀비 1
+        {1f, 0, 1, 1, 0},      // 1초: 좀비 1
+        {3f, 0, 1, 0, 0},      // 3초: 좀비 1
+        {5f, 0, 1, 0, 0},      // 5초: 좀비 1
     };
 
     // Wave 2: 좀비 + 슬라임 첫 등장 (초급)
     private float[][] wave2_spawns = {
-        {1f, 0, 1, 0},      // 1초: 좀비 1
-        {2.5f, 1, 0, 0},    // 2.5초: 슬라임 1
-        {5f, 0, 1, 0},      // 5초: 좀비 1
-        {6f, 1, 0, 0},      // 6초: 슬라임 1
-        {7f, 0, 1, 0},      // 7초: 좀비 1
+        {1f, 0, 1, 0, 0},      // 1초: 좀비 1
+        {2.5f, 1, 0, 0, 0},    // 2.5초: 슬라임 1
+        {5f, 0, 1, 0, 0},      // 5초: 좀비 1
+        {6f, 1, 0, 0, 0},      // 6초: 슬라임 1
+        {7f, 0, 1, 0, 0},      // 7초: 좀비 1
     };
 
-    // Wave 3: 좀비와 슬라임 혼합 (중급)
+    // Wave 3: 좀비, 슬라임, 박쥐 첫 등장 (중급)
     private float[][] wave3_spawns = {
-        {1f, 1, 1, 0},      // 1초: 슬라임 1, 좀비 1
-        {2f, 0, 1, 0},      // 2초: 좀비 1
-        {3.5f, 1, 1, 0},    // 3.5초: 슬라임 1, 좀비 1
-        {5f, 0, 1, 0},      // 5초: 좀비 1
-        {5.5f, 0, 1, 0},    // 5.5초: 좀비 1
-        {7f, 1, 0, 0},      // 7초: 슬라임 1
-        {8f, 0, 1, 0},      // 8초: 좀비 1
-        {8.5f, 0, 1, 0},    // 8.5초: 좀비 1
-        {9f, 1, 0, 0},      // 9초: 슬라임 1
-        {10f, 1, 1, 0},     // 10초: 슬라임 1, 좀비 1
+        {1f, 1, 1, 0, 0},      // 1초: 슬라임 1, 좀비 1
+        {2f, 0, 1, 0, 0},      // 2초: 좀비 1
+        {3f, 0, 0, 1, 0},      // 3초: 박쥐 1 (첫 등장!)
+        {3.5f, 1, 1, 0, 0},    // 3.5초: 슬라임 1, 좀비 1
+        {5f, 0, 1, 1, 0},      // 5초: 좀비 1, 박쥐 1
+        {5.5f, 0, 1, 0, 0},    // 5.5초: 좀비 1
+        {7f, 1, 0, 1, 0},      // 7초: 슬라임 1, 박쥐 1
+        {8f, 0, 1, 0, 0},      // 8초: 좀비 1
+        {8.5f, 0, 1, 0, 0},    // 8.5초: 좀비 1
+        {9f, 1, 0, 0, 0},      // 9초: 슬라임 1
+        {10f, 1, 1, 1, 0},     // 10초: 슬라임 1, 좀비 1, 박쥐 1
     };
 
-    // Wave 4: 대량 공격 (고급)
+    // Wave 4: 대량 공격 + 박쥐 증가 (고급)
     private float[][] wave4_spawns = {
-        {1f, 1, 0, 0},      // 1초: 슬라임 1
-        {1.5f, 1, 0, 0},    // 1.5초: 슬라임 1
-        {2f, 1, 1, 0},      // 2초: 슬라임 1, 좀비 1
-        {3f, 0, 1, 0},      // 3초: 좀비 1
-        {3.5f, 1, 0, 0},    // 3.5초: 슬라임 1
-        {4f, 0, 1, 0},      // 4초: 좀비 1
-        {4.5f, 0, 1, 0},    // 4.5초: 좀비 1
-        {5f, 1, 0, 0},      // 5초: 슬라임 1
-        {6f, 1, 1, 0},      // 6초: 슬라임 1, 좀비 1
-        {7f, 0, 1, 0},      // 7초: 좀비 1
-        {7.5f, 1, 0, 0},    // 7.5초: 슬라임 1
-        {8f, 0, 1, 0},      // 8초: 좀비 1
-        {8.5f, 0, 1, 0},    // 8.5초: 좀비 1
-        {9f, 1, 0, 0},      // 9초: 슬라임 1
-        {10f, 0, 1, 0},     // 10초: 좀비 1
-        {10.5f, 1, 0, 0},   // 10.5초: 슬라임 1
-        {11f, 1, 1, 0},     // 11초: 슬라임 1, 좀비 1
-        {12f, 0, 1, 0},     // 12초: 좀비 1
-        {12.5f, 0, 1, 0},   // 12.5초: 좀비 1
-        {13f, 1, 0, 0},     // 13초: 슬라임 1
-        {14f, 0, 1, 0},     // 14초: 좀비 1
+        {1f, 1, 0, 1, 0},      // 1초: 슬라임 1, 박쥐 1
+        {1.5f, 1, 0, 0, 0},    // 1.5초: 슬라임 1
+        {2f, 1, 1, 0, 0},      // 2초: 슬라임 1, 좀비 1
+        {3f, 0, 1, 1, 0},      // 3초: 좀비 1, 박쥐 1
+        {3.5f, 1, 0, 1, 0},    // 3.5초: 슬라임 1, 박쥐 1
+        {4f, 0, 1, 0, 0},      // 4초: 좀비 1
+        {4.5f, 0, 1, 1, 0},    // 4.5초: 좀비 1, 박쥐 1
+        {5f, 1, 0, 0, 0},      // 5초: 슬라임 1
+        {6f, 1, 1, 1, 0},      // 6초: 슬라임 1, 좀비 1, 박쥐 1
+        {7f, 0, 1, 1, 0},      // 7초: 좀비 1, 박쥐 1
+        {7.5f, 1, 0, 0, 0},    // 7.5초: 슬라임 1
+        {8f, 0, 1, 1, 0},      // 8초: 좀비 1, 박쥐 1
+        {8.5f, 0, 1, 0, 0},    // 8.5초: 좀비 1
+        {9f, 1, 0, 1, 0},      // 9초: 슬라임 1, 박쥐 1
+        {10f, 0, 1, 0, 0},     // 10초: 좀비 1
+        {10.5f, 1, 0, 1, 0},   // 10.5초: 슬라임 1, 박쥐 1
+        {11f, 1, 1, 0, 0},     // 11초: 슬라임 1, 좀비 1
+        {12f, 0, 1, 1, 0},     // 12초: 좀비 1, 박쥐 1
+        {12.5f, 0, 1, 1, 0},   // 12.5초: 좀비 1, 박쥐 1
+        {13f, 1, 0, 0, 0},     // 13초: 슬라임 1
+        {14f, 0, 1, 1, 0},     // 14초: 좀비 1, 박쥐 1
     };
 
     // Wave 5: 보스 웨이브 - 사일롭스 등장! (최고난이도)
     private float[][] wave5_spawns = {
-        {1f, 1, 0, 0},      // 1초: 슬라임 1
-        {1.5f, 0, 1, 0},    // 1.5초: 좀비 1
-        {2f, 1, 0, 0},      // 2초: 슬라임 1
-        {2.5f, 0, 1, 0},    // 2.5초: 좀비 1
-        {3f, 1, 0, 0},      // 3초: 슬라임 1
-        {4f, 0, 0, 1},      // 4초: 사일롭스 1 (첫 등장!)
-        {5f, 0, 1, 0},      // 5초: 좀비 1
-        {5.5f, 1, 0, 0},    // 5.5초: 슬라임 1
-        {6f, 0, 1, 0},      // 6초: 좀비 1
-        {6.5f, 1, 0, 0},    // 6.5초: 슬라임 1
-        {7f, 0, 1, 0},      // 7초: 좀비 1
-        {8f, 1, 0, 0},      // 8초: 슬라임 1
-        {8.5f, 0, 1, 0},    // 8.5초: 좀비 1
-        {9f, 0, 0, 1},      // 9초: 사일롭스 1
-        {10f, 1, 0, 0},     // 10초: 슬라임 1
-        {10.5f, 0, 1, 0},   // 10.5초: 좀비 1
-        {11f, 1, 0, 0},     // 11초: 슬라임 1
-        {11.5f, 0, 1, 0},   // 11.5초: 좀비 1
-        {12f, 1, 0, 0},     // 12초: 슬라임 1
-        {13f, 0, 1, 0},     // 13초: 좀비 1
-        {13.5f, 0, 1, 0},   // 13.5초: 좀비 1
-        {14f, 1, 0, 0},     // 14초: 슬라임 1
-        {15f, 0, 0, 1},     // 15초: 사일롭스 1
-        {16f, 0, 1, 0},     // 16초: 좀비 1
-        {16.5f, 1, 0, 0},   // 16.5초: 슬라임 1
-        {17f, 0, 1, 0},     // 17초: 좀비 1
-        {18f, 0, 0, 1},     // 18초: 사일롭스 1
-        {19f, 1, 0, 0},     // 19초: 슬라임 1
-        {19.5f, 0, 1, 0},   // 19.5초: 좀비 1
-        {20f, 1, 0, 0},     // 20초: 슬라임 1
-        {21f, 0, 1, 0},     // 21초: 좀비 1
+        {1f, 1, 0, 1, 0},      // 1초: 슬라임 1, 박쥐 1
+        {1.5f, 0, 1, 0, 0},    // 1.5초: 좀비 1
+        {2f, 1, 0, 0, 0},      // 2초: 슬라임 1
+        {2.5f, 0, 1, 1, 0},    // 2.5초: 좀비 1, 박쥐 1
+        {3f, 1, 0, 0, 0},      // 3초: 슬라임 1
+        {4f, 0, 0, 0, 1},      // 4초: 사일롭스 1 (첫 등장!)
+        {5f, 0, 1, 1, 0},      // 5초: 좀비 1, 박쥐 1
+        {5.5f, 1, 0, 0, 0},    // 5.5초: 슬라임 1
+        {6f, 0, 1, 0, 0},      // 6초: 좀비 1
+        {6.5f, 1, 0, 1, 0},    // 6.5초: 슬라임 1, 박쥐 1
+        {7f, 0, 1, 0, 0},      // 7초: 좀비 1
+        {8f, 1, 0, 1, 0},      // 8초: 슬라임 1, 박쥐 1
+        {8.5f, 0, 1, 0, 0},    // 8.5초: 좀비 1
+        {9f, 0, 0, 0, 1},      // 9초: 사일롭스 1
+        {10f, 1, 0, 1, 0},     // 10초: 슬라임 1, 박쥐 1
+        {10.5f, 0, 1, 0, 0},   // 10.5초: 좀비 1
+        {11f, 1, 0, 1, 0},     // 11초: 슬라임 1, 박쥐 1
+        {11.5f, 0, 1, 0, 0},   // 11.5초: 좀비 1
+        {12f, 1, 0, 0, 0},     // 12초: 슬라임 1
+        {13f, 0, 1, 1, 0},     // 13초: 좀비 1, 박쥐 1
+        {13.5f, 0, 1, 0, 0},   // 13.5초: 좀비 1
+        {14f, 1, 0, 1, 0},     // 14초: 슬라임 1, 박쥐 1
+        {15f, 0, 0, 0, 1},     // 15초: 사일롭스 1
+        {16f, 0, 1, 1, 0},     // 16초: 좀비 1, 박쥐 1
+        {16.5f, 1, 0, 0, 0},   // 16.5초: 슬라임 1
+        {17f, 0, 1, 1, 0},     // 17초: 좀비 1, 박쥐 1
+        {18f, 0, 0, 0, 1},     // 18초: 사일롭스 1
+        {19f, 1, 0, 1, 0},     // 19초: 슬라임 1, 박쥐 1
+        {19.5f, 0, 1, 0, 0},   // 19.5초: 좀비 1
+        {20f, 1, 0, 1, 0},     // 20초: 슬라임 1, 박쥐 1
+        {21f, 0, 1, 0, 0},     // 21초: 좀비 1
     };
 
     private int current_spawn_index = 0;
@@ -125,6 +128,7 @@ public class WaveManager {
         // 이전 웨이브 몬스터 정리
         slimes.clear();
         zombies.clear();
+        bats.clear();
         cyclopses.clear();
     }
 
@@ -175,26 +179,30 @@ public class WaveManager {
             if (wave_time >= spawn_time) {
                 int slime_count = (int)spawns[current_spawn_index][1];
                 int zombie_count = (int)spawns[current_spawn_index][2];
-                int cyclops_count = (int)spawns[current_spawn_index][3];
+                int bat_count = (int)spawns[current_spawn_index][3];
+                int cyclops_count = (int)spawns[current_spawn_index][4];
 
                 // 슬라임 소환 (같은 종류는 0.5초 간격으로)
                 for (int i = 0; i < slime_count; i++) {
                     Slime slime = new Slime(this.world);
-                    slime.setPosition(1180 + (i * 100), 100);
                     slimes.add(slime);
                 }
 
                 // 좀비 소환 (같은 종류는 0.5초 간격으로)
                 for (int i = 0; i < zombie_count; i++) {
                     Zombie zombie = new Zombie(this.world);
-                    zombie.setPosition(1180 + (i * 150), 100);
                     zombies.add(zombie);
+                }
+
+                // 박쥐 소환 (더 높은 공중에 생성)
+                for (int i = 0; i < bat_count; i++) {
+                    Bat bat = new Bat(this.world);
+                    bats.add(bat);
                 }
 
                 // 사일롭스 소환 (같은 종류는 0.5초 간격으로)
                 for (int i = 0; i < cyclops_count; i++) {
                     Cyclops cyclops = new Cyclops(this.world);
-                    cyclops.setPosition(1180 + (i * 200), 100);
                     cyclopses.add(cyclops);
                 }
 
@@ -213,6 +221,10 @@ public class WaveManager {
 
         for (int i = 0; i < zombies.size(); i++) {
             zombies.get(i).update(delta);
+        }
+
+        for (int i = 0; i < bats.size(); i++) {
+            bats.get(i).update(delta);
         }
 
         for (int i = 0; i < cyclopses.size(); i++) {
@@ -238,6 +250,14 @@ public class WaveManager {
             }
         }
 
+        Iterator<Bat> batIterator = bats.iterator();
+        while (batIterator.hasNext()) {
+            Bat bat = batIterator.next();
+            if (bat.isDead()) {
+                batIterator.remove();
+            }
+        }
+
         Iterator<Cyclops> cyclopsIterator = cyclopses.iterator();
         while (cyclopsIterator.hasNext()) {
             Cyclops cyclops = cyclopsIterator.next();
@@ -249,7 +269,7 @@ public class WaveManager {
 
     private void checkWaveClear() {
         // 모든 몬스터가 소환되었고, 남은 몬스터가 없으면 웨이브 클리어
-        if (all_spawned && slimes.isEmpty() && zombies.isEmpty() && cyclopses.isEmpty()) {
+        if (all_spawned && slimes.isEmpty() && zombies.isEmpty() && bats.isEmpty() && cyclopses.isEmpty()) {
             onWaveClear();
         }
     }
@@ -272,6 +292,10 @@ public class WaveManager {
             zombies.get(i).render(batch);
         }
 
+        for (int i = bats.size()-1; i >= 0; i--) {
+            bats.get(i).render(batch);
+        }
+
         for (int i = cyclopses.size()-1; i >= 0; i--) {
             cyclopses.get(i).render(batch);
         }
@@ -282,7 +306,7 @@ public class WaveManager {
     }
 
     public int getAliveMonsterCount() {
-        return slimes.size() + zombies.size() + cyclopses.size();
+        return slimes.size() + zombies.size() + bats.size() + cyclopses.size();
     }
 
     // 게임 오버 시 웨이브 초기화
@@ -307,6 +331,13 @@ public class WaveManager {
             }
         }
 
+        for (int i = 0; i < bats.size(); i++) {
+            Bat bat = bats.get(i);
+            if (bat.getBody() != null && !world.isLocked()) {
+                world.destroyBody(bat.getBody());
+            }
+        }
+
         for (int i = 0; i < cyclopses.size(); i++) {
             Cyclops cyclops = cyclopses.get(i);
             // 사일롭스의 모든 돌 먼저 제거
@@ -320,6 +351,7 @@ public class WaveManager {
         // 리스트 비우기
         slimes.clear();
         zombies.clear();
+        bats.clear();
         cyclopses.clear();
     }
 }

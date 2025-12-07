@@ -27,3 +27,28 @@ dependencies {
 }
 
 sourceSets.main.resources.srcDirs += [ rootProject.file('assets').path ]
+
+
+/* =============================
+   실행 가능한 fat-jar(dist) 설정
+   ============================= */
+tasks.register('dist', Jar) {
+  archiveBaseName = rootProject.name       // JavaProject
+  archiveVersion = ''                      // 파일명 버전 제거
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+  // 모든 의존성을 jar 안에 포함 (Fat Jar)
+  from {
+    configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+  }
+
+  // 프로젝트의 class 파일 포함
+  from sourceSets.main.output
+
+  // 실행 진입점
+  manifest {
+    attributes(
+      'Main-Class': 'com.example.mygame.lwjgl3.Lwjgl3Launcher'
+    )
+  }
+}

@@ -37,6 +37,11 @@ public class GameMonsterResources {
         GameAssetManager.load("sprite/game/monster/cyclops/idle/1.png", Texture.class);
         GameAssetManager.load("sprite/game/monster/cyclops/hurt/1.png", Texture.class);
         GameAssetManager.load("sprite/game/monster/cyclops/rock/1.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/bat/fly/1.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/bat/fly/2.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/bat/fly/3.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/bat/fly/4.png", Texture.class);
+        GameAssetManager.load("sprite/game/monster/bat/hurt/1.png", Texture.class);
     }
     public static void finishLoading() {
         GameAssetManager.finishLoading();

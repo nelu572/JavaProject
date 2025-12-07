@@ -42,7 +42,7 @@ public class Player extends GameObject {
         body = world.createBody(bodyDef);
 
         PolygonShape shape = new PolygonShape();
-        shape.setAsBox(getWidth() / 2f / PPM, getHeight() / 2f / PPM);
+        shape.setAsBox(getWidth() / 2f / PPM, getHeight() * 20f / PPM);
 
         FixtureDef fixtureDef = new FixtureDef();
         fixtureDef.shape = shape;

@@ -112,7 +112,7 @@ public class GameScreen implements Screen {
         // 게임 오버 콜백 설정
         ValueManager.setGameOverCallback(() -> {
             waveManager.reset();
-            ValueManager.setisWave(false);
+            ValueManager.resetGame();
             Gdx.input.setInputProcessor(upgradeCanvas.getStage());
             wasWaveActive = false;
         });
@@ -125,7 +125,7 @@ public class GameScreen implements Screen {
     private void resetGameState() {
         // 웨이브 매니저 초기화
         waveManager.reset();
-        ValueManager.resetGame();
+        ValueManager.setisWave(false);
         // 입력 프로세서 업그레이드 화면으로
         Gdx.input.setInputProcessor(upgradeCanvas.getStage());
         wasWaveActive = false;
