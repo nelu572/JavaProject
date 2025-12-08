@@ -20,18 +20,19 @@ public class Slime extends GameObject {
     private Body body;
     private World world;
     private static final float PPM = 100f;
+    private int jumpCount = 0; // 점프 횟수 카운터
 
     // 그래픽
     private Texture idle_texture;
     private static final float jump_delay = 0.75f;
-    private float jump_cooldown = 0.75f;
+    private float jump_cooldown = 1.0f;
     private boolean isJumping = true;
 
     // 피격
     private boolean isHitting = false;
     private ArrayList<Texture> hurt_textures = new ArrayList<>();
     private int hurt_index = 0;
-    private static int MAX_HP = 100;
+    private static int MAX_HP = 120;
     private int hp;
 
     // 죽음 애니메이션
@@ -165,7 +166,6 @@ public class Slime extends GameObject {
 
         } else if (isAttacking) {
             updateAttack(delta);
-
         } else {
             if (onGround) {
                 if (detectTarget()) {
@@ -307,7 +307,15 @@ public class Slime extends GameObject {
                 jump_cooldown -= delta;
                 if (jump_cooldown < 0) jump_cooldown = 0;
             } else if (onGround && !isHitting && !isAttacking) {
-                body.setLinearVelocity(new Vector2(-1.0f, 5.0f));
+                // 기본 벡터: (-1.5, 4.5)
+                float baseX = -1.5f;
+                float baseY = 4.5f;
+
+                // 두 번은 1배, 세 번째는 1.3배
+                jumpCount++;
+                float scale = (jumpCount % 3 == 0) ? 1.3f : 1.0f;
+
+                body.setLinearVelocity(new Vector2(baseX * scale, baseY * scale));
                 isJumping = true;
             }
         }
@@ -367,7 +375,7 @@ public class Slime extends GameObject {
             attackTimer = 0f;
             attack_cooldown = attack_delay;
         }
-        body.setLinearVelocity(new Vector2(2.75f, -0.3f));
+        body.setLinearVelocity(new Vector2(2.15f, -0.3f));
 
         isHitting = true;
         hurt_index = 0;

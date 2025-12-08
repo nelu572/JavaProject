@@ -29,6 +29,7 @@ public class GameUIResources {
         GameAssetManager.load("sprite/game/ui/upgrade/upgrade.png", Texture.class);
         GameAssetManager.load("sprite/game/ui/set/main_menu.png", Texture.class);
         GameAssetManager.load("sprite/game/ui/set/resume.png", Texture.class);
+        GameAssetManager.load("sprite/end/1.png", Texture.class);
 
     }
     public static void finishLoading() {

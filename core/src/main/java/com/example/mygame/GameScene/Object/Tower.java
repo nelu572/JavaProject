@@ -25,7 +25,7 @@ public class Tower extends GameObject {
     private void createBody(World world) {
         // Body 정의 (정적 - 타워는 움직이지 않음)
         BodyDef bodyDef = new BodyDef();
-        bodyDef.type = BodyDef.BodyType.StaticBody;
+        bodyDef.type = BodyDef.BodyType.KinematicBody;
         bodyDef.position.set(
             (getX() + getWidth() / 2f) / PPM,
             (getY() + getHeight() / 2f) / PPM

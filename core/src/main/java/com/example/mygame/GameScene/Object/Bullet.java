@@ -49,6 +49,8 @@ public class Bullet extends GameObject {
 
         // 초기 위치를 궤적에 추가
         trail.add(new Vector2(startPos.x, startPos.y));
+
+        BulletManager.registerBullet(this);
     }
 
     private void createPhysicsBody(Vector2 startPos, float angle) {

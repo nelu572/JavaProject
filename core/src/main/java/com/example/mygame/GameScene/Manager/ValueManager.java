@@ -14,39 +14,45 @@ public class ValueManager {
     // 타워 업그레이드 관련
     private static int towerLevel;
     private static int towerUpgradeCost;
-    private static final int MAX_TOWER_LEVEL = 10;
-    private static final int TOWER_BASE_COST = 100;
+    private static final int MAX_TOWER_LEVEL = 15;
+    private static final int TOWER_BASE_COST = 325;
     private static final int TOWER_HP_BASE_INCREASE = 10;
 
     // 플레이어 업그레이드 관련
     private static int playerAttack;
     private static int playerAttackLevel;
     private static int playerAttackUpgradeCost;
-    private static final int MAX_PLAYER_ATTACK_LEVEL = 10;
-    private static final int PLAYER_ATTACK_BASE_COST = 180;
+    private static final int MAX_PLAYER_ATTACK_LEVEL = 15;
+    private static final int PLAYER_ATTACK_BASE_COST = 380;
 
     // 재장전 시간 관련 (초 단위로 직접 관리)
     private static float playerReloadTime;  // 재장전 시간 (초)
     private static int playerReloadLevel;
     private static int playerReloadUpgradeCost;
-    private static final int MAX_PLAYER_RELOAD_LEVEL = 4;
-    private static final int PLAYER_RELOAD_BASE_COST = 350;
-    private static final float BASE_RELOAD_TIME = 1.0f;  // 기본 재장전 시간
+    private static final int MAX_PLAYER_RELOAD_LEVEL = 6;
+    private static final int PLAYER_RELOAD_BASE_COST = 550;
+    private static final float BASE_RELOAD_TIME = 0.8f;  // 기본 재장전 시간
 
     // 증가량
-    private static final int PLAYER_ATTACK_BASE_INCREASE = 3;
-    private static final float RELOAD_TIME_BASE_DECREASE = 0.15f;
+    private static final int PLAYER_ATTACK_BASE_INCREASE = 5;
+    private static final float RELOAD_TIME_DECREASE = 0.15f;  // 재장전 시간 감소량 (고정)
 
     // 공통 증가 비율
-    private static final double UPGRADE_MULTIPLIER = 1.5;
+    private static final double UPGRADE_MULTIPLIER = 1.1;
+    // 재장전 전용 증가 비율 (더 완만하게)
+    private static final double RELOAD_UPGRADE_MULTIPLIER = 1.25;
+    // 공격력 코인 비용 증가 비율
+    private static final double ATTACK_COST_MULTIPLIER = 1.25;
+    // 공격력 증가량 비율
+    private static final double ATTACK_INCREASE_MULTIPLIER = 1.1;
 
     static {
         MAX_COIN = 9999999;
-        coin = 0;
-        wave = 1;
+        coin = 999999;
+        wave = 5;
 
         // 타워 초기값
-        towerLevel = 1;
+        towerLevel = 0;
         towerUpgradeCost = TOWER_BASE_COST;
         MAX_TOWER_HP = 10;
         tower_hp = MAX_TOWER_HP;
@@ -248,7 +254,7 @@ public class ValueManager {
     }
 
     public static int getPlayerAttackIncrease() {
-        return (int)(PLAYER_ATTACK_BASE_INCREASE * Math.pow(UPGRADE_MULTIPLIER, playerAttackLevel - 1));
+        return (int)(PLAYER_ATTACK_BASE_INCREASE * Math.pow(ATTACK_INCREASE_MULTIPLIER, playerAttackLevel - 1));
     }
 
     public static boolean isPlayerAttackMaxLevel() {
@@ -264,7 +270,7 @@ public class ValueManager {
             playerAttack += getPlayerAttackIncrease();
             playerAttackLevel++;
             if(!isPlayerAttackMaxLevel()) {
-                playerAttackUpgradeCost = (int)(PLAYER_ATTACK_BASE_COST * Math.pow(UPGRADE_MULTIPLIER, playerAttackLevel - 1));
+                playerAttackUpgradeCost = (int)(PLAYER_ATTACK_BASE_COST * Math.pow(ATTACK_COST_MULTIPLIER, playerAttackLevel - 1));
             }
             return true;
         }
@@ -294,7 +300,7 @@ public class ValueManager {
         if(isPlayerReloadMaxLevel()) {
             return 0f;
         }
-        return (float)(RELOAD_TIME_BASE_DECREASE * Math.pow(UPGRADE_MULTIPLIER, playerReloadLevel - 1));
+        return RELOAD_TIME_DECREASE;  // 고정된 감소량 반환
     }
 
     public static boolean isPlayerReloadMaxLevel() {
@@ -317,7 +323,7 @@ public class ValueManager {
             playerReloadLevel++;
 
             if(!isPlayerReloadMaxLevel()) {
-                playerReloadUpgradeCost = (int)(PLAYER_RELOAD_BASE_COST * Math.pow(UPGRADE_MULTIPLIER, playerReloadLevel - 1));
+                playerReloadUpgradeCost = (int)(PLAYER_RELOAD_BASE_COST * Math.pow(RELOAD_UPGRADE_MULTIPLIER, playerReloadLevel - 1));
             }
             return true;
         }

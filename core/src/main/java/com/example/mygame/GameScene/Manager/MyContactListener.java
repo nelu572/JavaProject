@@ -76,8 +76,6 @@ public class MyContactListener implements ContactListener {
                                         Class<T> typeA, Class<U> typeB,
                                         java.util.function.Consumer<T> actionA,
                                         java.util.function.Consumer<U> actionB) {
-        System.out.println(a);
-        System.out.println(b);
         if (typeA.isInstance(a) && typeB.isInstance(b)) {
             if (actionA != null) actionA.accept(typeA.cast(a));
             if (actionB != null) actionB.accept(typeB.cast(b));

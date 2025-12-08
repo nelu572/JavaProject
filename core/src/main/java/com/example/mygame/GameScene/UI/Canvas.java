@@ -113,6 +113,14 @@ public class Canvas extends UIManager {
     }
 
     // -----------------------------
+    // 엔딩 UI 구조체
+    // -----------------------------
+    private static class EndingUI {
+        Image endingImage;
+        boolean visible;
+    }
+
+    // -----------------------------
     // UI 레이아웃 설정
     // -----------------------------
     private static final class Layout {
@@ -131,6 +139,9 @@ public class Canvas extends UIManager {
             388f * 3f, 32f * 3f,
             75f, 100f
         );
+
+        // 엔딩 화면 (화면 중앙에 배치)
+        static final UIElementConfig EndingScreen = new UIElementConfig(0f, 0f, 1f);
     }
 
     // -----------------------------
@@ -140,10 +151,12 @@ public class Canvas extends UIManager {
     private final Stage stage;
     private final GlyphLayout glyphLayout;
     private BitmapFont font;
+    private final CoverViewport viewport;
 
     private CoinUI coinUI;
     private WaveUI waveUI;
     private HealthBarUI healthBarUI;
+    private EndingUI endingUI;
 
     // -----------------------------
     // HP Bar Image 방식 필드
@@ -160,6 +173,7 @@ public class Canvas extends UIManager {
     // Constructor
     // -----------------------------
     public Canvas(CoverViewport viewport, Batch batch) {
+        this.viewport = viewport;
         this.batch = batch;
         this.stage = new Stage(viewport);
         this.stage.getCamera().position.set(0, 0, 0);
@@ -170,6 +184,7 @@ public class Canvas extends UIManager {
         initCoinUI();
         initWaveUI();
         initHealthBarUI();
+        initEndingUI();
 
         // Stage actor 추가
         stage.addActor(coinUI.panel);
@@ -218,6 +233,31 @@ public class Canvas extends UIManager {
     }
 
     // -----------------------------
+    // 엔딩 UI 초기화
+    // -----------------------------
+    private void initEndingUI() {
+        endingUI = new EndingUI();
+        endingUI.visible = false;
+
+        Texture endingTexture = GameUIResources.get("sprite/end/1.png", Texture.class);
+        endingUI.endingImage = new Image(endingTexture);
+
+        // 화면 중앙에 배치하고 화면 크기에 맞게 조정
+        float imageWidth = endingTexture.getWidth();
+        float imageHeight = endingTexture.getHeight();
+        float viewportWidth = viewport.getWorldWidth();
+        float viewportHeight = viewport.getWorldHeight();
+
+        // 화면에 꽉 차게 스케일 계산
+        float scaleX = viewportWidth / imageWidth;
+        float scaleY = viewportHeight / imageHeight;
+        float scale = Math.max(scaleX, scaleY);
+
+        endingUI.endingImage.setScale(scale);
+        endingUI.endingImage.setPosition(-viewportWidth / 2, -viewportHeight / 2);
+    }
+
+    // -----------------------------
     // Image 생성 헬퍼
     // -----------------------------
     private Image createImage(String path, UIElementConfig config) {
@@ -249,12 +289,35 @@ public class Canvas extends UIManager {
     }
 
     // -----------------------------
+    // 엔딩 화면 표시/숨김
+    // -----------------------------
+    public void showEnding() {
+        endingUI.visible = true;
+    }
+
+    public void hideEnding() {
+        endingUI.visible = false;
+    }
+
+    public boolean isEndingVisible() {
+        return endingUI.visible;
+    }
+
+    // -----------------------------
     // Render
     // -----------------------------
     public void render() {
-
         updateHealthBarValues();
 
+        // 엔딩 화면이 표시 중이면 엔딩만 렌더링
+        if (endingUI.visible) {
+            batch.begin();
+            endingUI.endingImage.draw(batch, 1f);
+            batch.end();
+            return;
+        }
+
+        // 일반 게임 UI 렌더링
         stage.act(Gdx.graphics.getDeltaTime());
         stage.draw();
 

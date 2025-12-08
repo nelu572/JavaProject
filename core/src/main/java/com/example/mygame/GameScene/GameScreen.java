@@ -55,6 +55,7 @@ public class GameScreen implements Screen {
     private UpgradeCanvas upgradeCanvas;
 
     private boolean wasWaveActive = false; // 이전 프레임의 웨이브 상태
+    private boolean isGameEnded = false; // 웨이브 10 클리어 후 엔딩 화면 표시 중
 
     public GameScreen(Main main) {
         this.main = main;
@@ -97,12 +98,18 @@ public class GameScreen implements Screen {
         // 초기 상태는 업그레이드 모드
         waveManager = new WaveManager(world);
 
+        // 웨이브 10 클리어 콜백 설정
+        waveManager.setWave10ClearCallback(() -> {
+            onWave10Clear();
+        });
+
         canvas = new Canvas(viewport, batch);
         upgradeCanvas = new UpgradeCanvas(viewport, batch, waveManager);
         escMenuCanvas = new ESCMenuCanvas(viewport, batch, main);
 
         Gdx.input.setInputProcessor(upgradeCanvas.getStage());
         wasWaveActive = false;
+        isGameEnded = false;
 
         // GameObject들을 Box2D Body와 함께 생성
         ground = new Ground(world);
@@ -111,24 +118,52 @@ public class GameScreen implements Screen {
 
         // 게임 오버 콜백 설정
         ValueManager.setGameOverCallback(() -> {
+            BulletManager.destroyAllBullets();
             waveManager.reset();
             ValueManager.resetGame();
             Gdx.input.setInputProcessor(upgradeCanvas.getStage());
             wasWaveActive = false;
+            isGameEnded = false;
+            canvas.hideEnding();
         });
 
         // 메인 화면에서 넘어올 때 게임 초기화
         resetGameState();
     }
 
+    // 웨이브 10 클리어 처리
+    private void onWave10Clear() {
+        isGameEnded = true;
+        canvas.showEnding();
+        ValueManager.setisWave(false);
+    }
+
     // 게임 상태 초기화 (메인 화면에서 넘어올 때)
     private void resetGameState() {
+        // 총알 완전 초기화
+        BulletManager.destroyAllBullets();
         // 웨이브 매니저 초기화
         waveManager.reset();
         ValueManager.setisWave(false);
         // 입력 프로세서 업그레이드 화면으로
         Gdx.input.setInputProcessor(upgradeCanvas.getStage());
         wasWaveActive = false;
+        isGameEnded = false;
+        canvas.hideEnding();
+    }
+
+    // 엔딩에서 메인으로 돌아가기
+    private void returnToMainFromEnding() {
+        // 게임 완전 초기화
+        BulletManager.destroyAllBullets();
+        waveManager.reset();
+        ValueManager.resetGame();
+        canvas.hideEnding();
+        isGameEnded = false;
+        wasWaveActive = false;
+
+        // 메인 화면으로 전환
+        main.ChangeScene("Main");
     }
 
     @Override
@@ -137,6 +172,19 @@ public class GameScreen implements Screen {
 
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        // 엔딩 화면이 표시 중일 때
+        if (isGameEnded) {
+            // ESC 입력 처리 - 메인으로 돌아가기
+            if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                returnToMainFromEnding();
+                return;
+            }
+
+            // 엔딩 화면만 렌더링
+            canvas.render();
+            return;
+        }
 
         // ESC 메뉴가 열려있지 않을 때만 물리 시뮬레이션 실행
         if (!escMenuCanvas.isVisible()) {
@@ -155,11 +203,9 @@ public class GameScreen implements Screen {
     }
 
     private void update(float delta) {
-        BulletManager.processDestroyQueue();
-
         boolean isWaveActive = ValueManager.getisWave();
-
-        // ESC 메뉴가 열려있지 않을 때만 게임 로직 업데이트
+        BulletManager.processDestroyQueue();
+        // 총알 제거 큐 처리
         if (!escMenuCanvas.isVisible()) {
             // 웨이브 상태가 변경되었을 때만 InputProcessor 전환
             if (isWaveActive != wasWaveActive) {
@@ -170,6 +216,7 @@ public class GameScreen implements Screen {
                 } else {
                     // 웨이브 종료: 업그레이드 UI 입력으로 전환
                     Gdx.input.setInputProcessor(upgradeCanvas.getStage());
+                    BulletManager.destroyAllBullets();
                 }
                 wasWaveActive = isWaveActive;
             }
@@ -214,7 +261,7 @@ public class GameScreen implements Screen {
         batch.end();
 
         // 디버그 렌더링
-        debugRenderer.render(world, viewport.getCamera().combined.cpy().scl(PPM));
+        // debugRenderer.render(world, viewport.getCamera().combined.cpy().scl(PPM));
     }
 
     @Override
@@ -237,6 +284,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void dispose() {
+        // 총알 정리
         batch.dispose();
         backstage.dispose();
         world.dispose();

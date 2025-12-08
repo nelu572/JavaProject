@@ -33,7 +33,7 @@ public class Bat extends GameObject {
     private Texture hurt_texture;
     private float hurt_timer = 0f;
     private static final float hurt_duration = 0.4f;
-    private static int MAX_HP = 80;
+    private static int MAX_HP = 60;
     private int hp;
 
     // 죽음 애니메이션
@@ -55,8 +55,14 @@ public class Bat extends GameObject {
     private float attackBackwardTime = 0.5f;
 
     private Vector2 attackStartPosition = new Vector2();
+    private Vector2 hitRetreatTarget = new Vector2(); // 피격 시 복귀 목표 위치
     private float attackDistance = 1.25f;
     private float attackDownwardOffset = 1f; // 대각선 아래로 이동
+
+    // 공격 중 피격 시 복귀 상태
+    private boolean isRetreatingFromHit = false; // 공격 중 피격 후 복귀 중 (무적)
+    private float extraRetreatDistance = 1.0f; // 추가 후퇴 거리
+    private float hitBackwardTime = 0.5f; // 피격 시 빠른 복귀
 
     private static final float attack_delay = 0.25f; // 빠른 공속
     private float attack_cooldown = 0.25f;
@@ -64,10 +70,11 @@ public class Bat extends GameObject {
     // 사망 관련
     private boolean isDead = false;
     private boolean pendingRemove = false;
-    private static final int COIN = 150;
+    private static final int COIN = 100;
 
     // 충돌 필터
     public static final short CATEGORY_MONSTER = 0x0002;
+    public static final short MASK_MONSTER = ~CATEGORY_MONSTER; // 몬스터끼리 충돌 안함
 
     // -----------------------
     // 생성자
@@ -132,6 +139,7 @@ public class Bat extends GameObject {
         fixture.restitution = 0f;
 
         fixture.filter.categoryBits = CATEGORY_MONSTER;
+        fixture.filter.maskBits = MASK_MONSTER; // 몬스터끼리 충돌 안함
 
         body.createFixture(fixture);
         body.setUserData(this);
@@ -169,8 +177,11 @@ public class Bat extends GameObject {
             if (hurt_timer >= hurt_duration) {
                 isHitting = false;
                 hurt_timer = 0f;
-                setTexture(fly_textures.get(0));
-                updateSize(fly_textures.get(0));
+                // 복귀 상태가 아닐 때만 텍스처 복구
+                if (!isRetreatingFromHit) {
+                    setTexture(fly_textures.get(0));
+                    updateSize(fly_textures.get(0));
+                }
             }
         } else if (isAttacking) {
             updateAttack(delta);
@@ -226,6 +237,7 @@ public class Bat extends GameObject {
         attackForward = true;
         attackBackward = false;
         attackTimer = 0f;
+        isRetreatingFromHit = false;
 
         attackStartPosition.set(body.getPosition());
     }
@@ -284,26 +296,38 @@ public class Bat extends GameObject {
         }
 
         if (attackBackward) {
-            // 원래 위치로 부드럽게 복귀
-            float distanceX = attackStartPosition.x - body.getPosition().x;
-            float distanceY = attackStartPosition.y - body.getPosition().y;
+            // 복귀 목표 위치 (피격 시에는 더 뒤로)
+            float targetX = isRetreatingFromHit ? hitRetreatTarget.x : attackStartPosition.x;
+            float targetY = isRetreatingFromHit ? hitRetreatTarget.y : attackStartPosition.y;
+
+            float distanceX = targetX - body.getPosition().x;
+            float distanceY = targetY - body.getPosition().y;
             float distance = (float)Math.sqrt(distanceX * distanceX + distanceY * distanceY);
 
-            // 원위치에 충분히 가까워지면 공격 종료
-            if (distance < 0.1f || attackTimer >= attackBackwardTime) {
+            // 복귀 시간 선택 (피격 시 더 느리게)
+            float backwardTime = isRetreatingFromHit ? hitBackwardTime : attackBackwardTime;
+
+            // 목표 위치에 충분히 가까워지면 공격 종료
+            if (distance < 0.1f || attackTimer >= backwardTime) {
                 attackBackward = false;
                 isAttacking = false;
                 attackTimer = 0f;
                 attack_cooldown = attack_delay;
 
-                // 원위치로 부드럽게 보정
-                body.setTransform(attackStartPosition.x, attackStartPosition.y, body.getAngle());
+                // 복귀 완료 시 상태 초기화
+                if (isRetreatingFromHit) {
+                    isRetreatingFromHit = false;
+                    setTexture(fly_textures.get(0));
+                    updateSize(fly_textures.get(0));
+                }
+
+                body.setTransform(targetX, targetY, body.getAngle());
                 body.setLinearVelocity(0, 0);
                 return;
             }
 
             // 남은 시간에 따라 속도 계산
-            float timeRemaining = attackBackwardTime - attackTimer;
+            float timeRemaining = backwardTime - attackTimer;
             float velX = distanceX / timeRemaining;
             float velY = distanceY / timeRemaining;
 
@@ -324,7 +348,8 @@ public class Bat extends GameObject {
     // -----------------------
     @Override
     public void onHit() {
-        if (isDead || isHitting) return;
+        // 죽었거나, 일반 피격 중이거나, 복귀 중일 때는 피격 무시
+        if (isDead || isHitting || isRetreatingFromHit) return;
 
         hp -= ValueManager.getPlayerAttack();
 
@@ -341,19 +366,31 @@ public class Bat extends GameObject {
         }
 
         if (isAttacking) {
-            isAttacking = false;
+            body.setLinearVelocity(new Vector2(0f, 0f));
+            // 공격 중 맞으면 복귀 목표 위치 고정
+            hitRetreatTarget.set(
+                attackStartPosition.x + extraRetreatDistance,
+                attackStartPosition.y
+            );
+
+            // 복귀 상태로 전환 (무적 상태 활성화)
             attackForward = false;
-            attackBackward = false;
+            attackBackward = true;
             attackTimer = 0f;
-            attack_cooldown = attack_delay;
+            isRetreatingFromHit = true;
+
+            // hurt 텍스처는 표시하되 isHitting은 false 유지
+            setTexture(hurt_texture);
+            updateSize(hurt_texture);
+        } else {
+            // 평소에 맞으면 뒤로 밀림
+            body.setLinearVelocity(new Vector2(1f, 0f));
+
+            isHitting = true;
+            hurt_timer = 0f;
+            setTexture(hurt_texture);
+            updateSize(hurt_texture);
         }
-
-        body.setLinearVelocity(new Vector2(1f,0f));
-
-        isHitting = true;
-        hurt_timer = 0f;
-        setTexture(hurt_texture);
-        updateSize(hurt_texture);
     }
 
     // -----------------------

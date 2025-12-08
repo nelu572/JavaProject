@@ -29,13 +29,14 @@ public class Zombie extends GameObject {
     private static final float MOVE_SPEED = -0.75f; // 왼쪽으로 등속 이동
 
     // HP
-    private static int MAX_HP = 150;
+    private static int MAX_HP = 100;
     private int hp;
 
     // 피격
     private boolean isHitting = false;
     private float hitTimer = 0f;
     private static final float HIT_DURATION = 0.35f;
+    private boolean shouldKnockback = false;
 
     // 죽음 애니메이션
     private float deathTimer = 0f;
@@ -57,7 +58,7 @@ public class Zombie extends GameObject {
     // 사망 관련
     private boolean isDead = false;
     private boolean pendingRemove = false;
-    private static final int COIN = 150;
+    private static final int COIN = 250;
 
     // 충돌 필터
     public static final short CATEGORY_MONSTER = 0x0002;
@@ -158,7 +159,9 @@ public class Zombie extends GameObject {
 
         if (isHitting) {
             hitTimer += delta;
-
+            if(!shouldKnockback){
+                body.setLinearVelocity(new Vector2(MOVE_SPEED/2f, body.getLinearVelocity().y));
+            }
             if (hitTimer >= HIT_DURATION) {
                 isHitting = false;
                 hitTimer = 0f;
@@ -167,7 +170,6 @@ public class Zombie extends GameObject {
 
         } else if (isAttacking) {
             updateAttack(delta);
-            body.setLinearVelocity(0, body.getLinearVelocity().y); // 공격시 이동 정지
 
         } else {
             // 공격 쿨다운 감소
@@ -217,6 +219,7 @@ public class Zombie extends GameObject {
         attack_frame_index = 0;
         damageDealt = false;
         setTexture(attack_textures.get(0));
+        body.setLinearVelocity(0, body.getLinearVelocity().y);
     }
 
     // -----------------------
@@ -255,7 +258,7 @@ public class Zombie extends GameObject {
         }
 
         // 애니메이션 중간 시점에 데미지 적용 (4번째 프레임 정도)
-        if (!damageDealt && attackAnimationTimer >= ATTACK_TOTAL_DURATION * 0.5f) {
+        if (!damageDealt && attackAnimationTimer >= ATTACK_TOTAL_DURATION * 0.25f) {
             if (detectTarget()) {
                 ValueManager.damageTower(Damage);
             }
@@ -329,7 +332,7 @@ public class Zombie extends GameObject {
         int firstThreshold = (int)(MAX_HP * 0.4f);  // 60
         int secondThreshold = (int)(MAX_HP * 0.7f); // 105
 
-        boolean shouldKnockback = false;
+        shouldKnockback = false;
 
         // 70% -> 40% 구간 통과
         if (previousHp > secondThreshold && hp <= secondThreshold) {
@@ -355,7 +358,7 @@ public class Zombie extends GameObject {
 
         // 임계값을 넘었을 때만 뒤로 밀림
         if (shouldKnockback) {
-            body.setLinearVelocity(new Vector2(2.0f, 1.0f));
+            body.setLinearVelocity(new Vector2(2.0f, body.getLinearVelocity().y-0.5f));
         }
     }
 
