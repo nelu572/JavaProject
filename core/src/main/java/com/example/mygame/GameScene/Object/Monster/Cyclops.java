@@ -24,7 +24,7 @@ public class Cyclops extends GameObject {
     private ArrayList<Texture> walk_textures = new ArrayList<>();
     private int walk_index = 0;
     private boolean isWalking = false;
-    private float walkSpeed = -0.75f; // 왼쪽으로 이동 (속도 감소)
+    private float walkSpeed = -1.25f; // 왼쪽으로 이동 (속도 감소)
     private static final float SIZE_SCALE = 7f; // 크기 배율 증가
 
     // 박스 크기 (고정값)
@@ -38,7 +38,6 @@ public class Cyclops extends GameObject {
     private static final float hurt_duration = 0.5f;
     private static int MAX_HP = 550;
     private int hp;
-    private float alpha = 1.0f; // 투명도
 
     // 죽음 애니메이션
     private float deathTimer = 0f;
@@ -50,7 +49,7 @@ public class Cyclops extends GameObject {
     private int attack_index = 0;
     private static int Damage = 22;
 
-    private static final float attack_delay = 1.5f;
+    private static final float attack_delay = 2.5f;
     private float attack_cooldown = 0f;
 
     // 투사체 관련
@@ -186,29 +185,27 @@ public class Cyclops extends GameObject {
 
         boolean onGround = isOnGround();
 
-        if (isHitting) {
-            hurt_timer += delta;
-            // 피격 중에도 계속 전진
-            body.setLinearVelocity(walkSpeed, body.getLinearVelocity().y);
 
-            if (hurt_timer >= hurt_duration) {
-                isHitting = false;
-                hurt_timer = 0f;
-                alpha = 1.0f; // 투명도 복구
-                // 피격 후 다시 이동 시작
-                if (onGround) {
-                    isWalking = true;
-                }
+        if (attack_cooldown > 0) {
+            attack_cooldown -= delta;
+            if (attack_cooldown < 0) attack_cooldown = 0;
+        }
+        if (isHitting) {
+        hurt_timer += delta;
+        body.setLinearVelocity(0,body.getLinearVelocity().y);
+        if (hurt_timer >= hurt_duration) {
+            isHitting = false;
+            hurt_timer = 0f;
+            setTexture(idle_texture);
+            updateSize(idle_texture);
+            // 피격 후 다시 이동 시작
+            if (onGround) {
+                isWalking = true;
             }
+        }
         } else if (isAttacking) {
             updateAttack(delta);
         } else {
-            // 공격 쿨다운 체크
-            if (attack_cooldown > 0) {
-                attack_cooldown -= delta;
-                if (attack_cooldown < 0) attack_cooldown = 0;
-            }
-
             // 타겟 감지 및 공격
             if (detectTarget() && attack_cooldown == 0) {
                 startAttack();
@@ -272,7 +269,7 @@ public class Cyclops extends GameObject {
     // 전방 레이 감지 (사거리 증가)
     // -----------------------
     private boolean detectTarget() {
-        float maxDistance = 7.0f; // 사거리 증가
+        float maxDistance = 9.0f; // 사거리 증가
 
         Vector2 start = body.getPosition();
         Vector2 end = new Vector2(start.x - maxDistance, start.y);
@@ -295,7 +292,7 @@ public class Cyclops extends GameObject {
     // 공격 애니메이션 업데이트
     // -----------------------
     private void updateAttack(float delta) {
-        if (attack_index / 7 >= attack_textures.size()) {
+        if (attack_index / 5 >= attack_textures.size()) {
             // 공격 종료
             isAttacking = false;
             attack_index = 0;
@@ -303,12 +300,12 @@ public class Cyclops extends GameObject {
             setTexture(idle_texture);
             updateSize(idle_texture);
         } else {
-            Texture currentTexture = attack_textures.get(attack_index / 7);
+            Texture currentTexture = attack_textures.get(attack_index / 5);
             setTexture(currentTexture);
             updateSize(currentTexture);
 
             // 애니메이션 끝날 때쯤 돌 던지기 (7번째 프레임)
-            if (attack_index / 7 == 7 && !rockThrown) {
+            if (attack_index / 5 == 7 && !rockThrown) {
                 throwRock();
                 rockThrown = true;
             }
@@ -375,7 +372,8 @@ public class Cyclops extends GameObject {
             isHitting = true;
             isWalking = false;
             hurt_timer = 0f;
-            alpha = 0.5f; // 반투명으로 설정
+            setTexture(hurt_texture);
+            updateSize(hurt_texture);
 
             die();
             return;
@@ -387,12 +385,13 @@ public class Cyclops extends GameObject {
             attack_index = 0;
             attack_cooldown = attack_delay;
         }
-
-        // 피격 상태 시작 (텍스처는 유지, 투명도만 변경)
+        body.setLinearVelocity(0,0);
+        // 피격 상태 시작
         isHitting = true;
         isWalking = false;
         hurt_timer = 0f;
-        alpha = 0.5f; // 반투명으로 설정
+        setTexture(hurt_texture);
+        updateSize(hurt_texture);
     }
 
     // -----------------------
@@ -420,9 +419,6 @@ public class Cyclops extends GameObject {
         // Body 위치를 기준으로 이미지의 가운데 아래가 박스의 가운데 아래에 오도록
         Vector2 bodyPos = body.getPosition();
 
-        // 투명도 설정
-        batch.setColor(1f, 1f, 1f, alpha);
-
         batch.draw(
             getTexture(),
             bodyPos.x * PPM - getWidth() / 2f,  // 가운데 정렬
@@ -430,9 +426,6 @@ public class Cyclops extends GameObject {
             getWidth(),
             getHeight()
         );
-
-        // 투명도 복구
-        batch.setColor(1f, 1f, 1f, 1f);
 
         // 돌 렌더링
         for (Rock rock : rocks) {

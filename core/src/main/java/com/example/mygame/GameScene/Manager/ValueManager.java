@@ -22,8 +22,8 @@ public class ValueManager {
     private static int playerAttack;
     private static int playerAttackLevel;
     private static int playerAttackUpgradeCost;
-    private static final int MAX_PLAYER_ATTACK_LEVEL = 15;
-    private static final int PLAYER_ATTACK_BASE_COST = 380;
+    private static final int MAX_PLAYER_ATTACK_LEVEL = 10;
+    private static final int PLAYER_ATTACK_BASE_COST = 330;
 
     // 재장전 시간 관련 (초 단위로 직접 관리)
     private static float playerReloadTime;  // 재장전 시간 (초)
@@ -34,7 +34,7 @@ public class ValueManager {
     private static final float BASE_RELOAD_TIME = 0.8f;  // 기본 재장전 시간
 
     // 증가량
-    private static final int PLAYER_ATTACK_BASE_INCREASE = 5;
+    private static final int PLAYER_ATTACK_BASE_INCREASE = 7;
     private static final float RELOAD_TIME_DECREASE = 0.15f;  // 재장전 시간 감소량 (고정)
 
     // 공통 증가 비율
@@ -48,8 +48,8 @@ public class ValueManager {
 
     static {
         MAX_COIN = 9999999;
-        coin = 999999;
-        wave = 5;
+        coin = 0;
+        wave = 1;
 
         // 타워 초기값
         towerLevel = 0;
